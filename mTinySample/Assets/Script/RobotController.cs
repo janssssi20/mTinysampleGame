@@ -1,17 +1,29 @@
 using UnityEngine;
 using System.Collections;
 
+[RequireComponent(typeof(Rigidbody2D))]
 public class RobotController : MonoBehaviour
 {
     public float moveDistance = 1f;
     public float moveSpeed = 2f;
 
+    [Header("Walkable Tiles")]
+    public LayerMask walkableLayer;
+
     private bool isExecuting;
+    private Rigidbody2D rb;
+
+    private void Awake()
+    {
+        rb = GetComponent<Rigidbody2D>();
+    }
 
     public void RunProgram()
     {
         if (!isExecuting)
+        {
             StartCoroutine(ExecuteCommands());
+        }
     }
 
     IEnumerator ExecuteCommands()
@@ -35,7 +47,7 @@ public class RobotController : MonoBehaviour
                     break;
             }
 
-            yield return new WaitForSeconds(0.3f);
+            yield return new WaitForSeconds(0.2f);
         }
 
         isExecuting = false;
@@ -43,68 +55,76 @@ public class RobotController : MonoBehaviour
 
     IEnumerator MoveForward()
     {
-        Vector2 startPos = transform.position;
+        Vector2 startPos = rb.position;
         Vector2 targetPos = startPos + (Vector2)transform.up * moveDistance;
 
-        float t = 0;
+        // ✅ CHECK IF TARGET TILE IS WALKABLE
+        Collider2D tile = Physics2D.OverlapPoint(targetPos, walkableLayer);
 
-        while (t < 1)
+        if (tile == null)
+        {
+            Debug.Log("Blocked: not a valid tile!");
+            yield break;
+        }
+
+        // Smooth movement
+        float t = 0f;
+
+        while (t < 1f)
         {
             t += Time.deltaTime * moveSpeed;
 
-            transform.position = Vector2.Lerp(startPos, targetPos, t);
+            rb.MovePosition(Vector2.Lerp(startPos, targetPos, t));
 
             yield return new WaitForFixedUpdate();
         }
+
+        rb.MovePosition(targetPos);
     }
 
     IEnumerator TurnLeft()
     {
-        Quaternion startRot =
-            transform.rotation;
-
-        Quaternion targetRot =
-            transform.rotation *
-            Quaternion.Euler(0, 0, 90);
-
-        float t = 0;
-
-        while (t < 1)
-        {
-            t += Time.deltaTime * moveSpeed;
-
-            transform.rotation =
-                Quaternion.Lerp(startRot, targetRot, t);
-
-            yield return null;
-        }
+        yield return RotateRobot(90f);
     }
 
     IEnumerator TurnRight()
     {
-        Quaternion startRot =
-            transform.rotation;
+        yield return RotateRobot(-90f);
+    }
 
-        Quaternion targetRot =
-            transform.rotation *
-            Quaternion.Euler(0, 0, -90);
+    IEnumerator RotateRobot(float angle)
+    {
+        Quaternion startRot = transform.rotation;
+        Quaternion targetRot = startRot * Quaternion.Euler(0, 0, angle);
 
-        float t = 0;
+        float t = 0f;
 
-        while (t < 1)
+        while (t < 1f)
         {
             t += Time.deltaTime * moveSpeed;
 
-            transform.rotation =
-                Quaternion.Lerp(startRot, targetRot, t);
+            transform.rotation = Quaternion.Lerp(startRot, targetRot, t);
 
             yield return null;
         }
+
+        transform.rotation = targetRot;
     }
 
     public void StopProgram()
     {
         StopAllCoroutines();
         isExecuting = false;
+    }
+
+    private void LateUpdate()
+    {
+        // keep robot on 2D plane
+        Vector3 p = transform.position;
+        if (p.z != 0)
+        {
+            p.z = 0;
+            transform.position = p;
+        }
     }
 }

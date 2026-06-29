@@ -12,8 +12,11 @@ public class ResetButton : MonoBehaviour
 
     private void Start()
     {
+        robot = FindObjectOfType<RobotController>();
+        
         startPos = robot.transform.position;
         startRot = robot.transform.rotation;
+
     }
 
     public void ResetGame()

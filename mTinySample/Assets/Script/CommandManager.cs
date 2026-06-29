@@ -1,86 +1,96 @@
-using System.Collections.Generic;
-using UnityEngine;
+    using System.Collections.Generic;
+    using UnityEngine;
 
-public enum CommandType
-{
-    Forward,
-    TurnLeft,
-    TurnRight
-}
-
-[System.Serializable]
-public class Command
-{
-    public CommandType commandType;
-
-    public Command(CommandType type)
+    public enum CommandType
     {
-        commandType = type;
-    }
-}
-
-public class CommandManager : MonoBehaviour
-{
-    public static CommandManager Instance;
-
-    public List<Command> commandList = new List<Command>();
-
-    private SequenceUIManager uiManager;
-
-    [Header("Icons")]
-    public Sprite forwardIcon;
-    public Sprite leftIcon;
-    public Sprite rightIcon;
-
-    private void Awake()
-    {
-        Instance = this;
+        Forward,
+        TurnLeft,
+        TurnRight,
+        StartFlag,
+        RunFlag
     }
 
-    private void Start()
+    [System.Serializable]
+    public class Command
     {
-        uiManager = FindFirstObjectByType<SequenceUIManager>();
+        public CommandType commandType;
 
-        if (uiManager == null)
+        public Command(CommandType type)
         {
-            Debug.LogError("SequenceUIManager not found in scene!");
+            commandType = type;
         }
     }
 
-    public void AddCommand(CommandType type)
+    public class CommandManager : MonoBehaviour
     {
-        // 1. Add to logic list
-        commandList.Add(new Command(type));
+        public static CommandManager Instance;
 
-        // 2. Add UI icon
-        if (uiManager != null)
+        public List<Command> commandList = new List<Command>();
+
+        private SequenceUIManager uiManager;
+
+        [Header("Icons")]
+        public Sprite forwardIcon;
+        public Sprite leftIcon;
+        public Sprite rightIcon;
+        public Sprite StartFlagIcon;
+        public Sprite RunFlagIcon;
+
+        private void Awake()
         {
-            uiManager.AddVisualBlock(GetIcon(type));
+            Instance = this;
         }
 
-        Debug.Log("Added: " + type);
-    }
-
-    public void ClearCommands()
-    {
-        commandList.Clear();
-    }
-
-    private Sprite GetIcon(CommandType type)
-    {
-        switch (type)
+        private void Start()
         {
-            case CommandType.Forward:
-                return forwardIcon;
+            uiManager = FindFirstObjectByType<SequenceUIManager>();
 
-            case CommandType.TurnLeft:
-                return leftIcon;
+            if (uiManager == null)
+            {
+                Debug.LogError("SequenceUIManager not found in scene!");
+            }
+        }
 
-            case CommandType.TurnRight:
-                return rightIcon;
+        public void AddCommand(CommandType type)
+        {
+            // 1. Add to logic list
+            commandList.Add(new Command(type));
 
-            default:
-                return null;
+            // 2. Add UI icon
+            if (uiManager != null)
+            {
+                uiManager.AddVisualBlock(GetIcon(type));
+            }
+
+            Debug.Log("Added: " + type);
+        }
+
+        public void ClearCommands()
+        {
+            commandList.Clear();
+        }
+
+        private Sprite GetIcon(CommandType type)
+        {
+            switch (type)
+            {
+                case CommandType.StartFlag:
+                    return StartFlagIcon;
+
+                case CommandType.Forward:
+                    return forwardIcon;
+
+                case CommandType.TurnLeft:
+                    return leftIcon;
+
+                case CommandType.TurnRight:
+                    return rightIcon;
+
+                case CommandType.RunFlag:
+                    return RunFlagIcon;
+
+                default:
+                    return null;
+            }
         }
     }
-}

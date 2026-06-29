@@ -4,7 +4,9 @@ public class GoalZone : MonoBehaviour
 {
     private void OnTriggerEnter2D(Collider2D other)
     {
-        Debug.Log($"Triggered by: {other.name}, tag: {other.tag}");
+        Debug.Log(
+            $"Goal Triggered By: {other.name} | Tag: {other.tag}"
+        );
 
         if (other.CompareTag("Robot"))
         {
