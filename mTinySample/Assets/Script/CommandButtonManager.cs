@@ -17,16 +17,15 @@ public class CommandButtonManager : MonoBehaviour
 
     private bool started;
 
-    private void Awake()
-    {
-        robot = FindObjectOfType<RobotController>();
-        
-        startPos = robot.transform.position;
-        startRot = robot.transform.rotation;
-    }
+
 
     private void Start()
     {
+        robot = FindObjectOfType<RobotController>();
+        commandManager = FindObjectOfType<CommandManager>();
+
+        startPos = robot.transform.position;
+        startRot = robot.transform.rotation;
         ResetState();
     }
 
