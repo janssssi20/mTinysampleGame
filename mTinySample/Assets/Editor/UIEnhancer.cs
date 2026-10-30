@@ -156,13 +156,18 @@ public static class UIEnhancer
         undoImage.preserveAspect = true;
         UnityEventTools.AddPersistentListener(undo.GetComponent<Button>().onClick, commands.RemoveLastBlock);
 
-        // Run leaves the scrolling palette and becomes a big Play button
+        // Run leaves the scrolling palette and becomes a big Play button.
+        // Only the first time: once it is in the header, its art, size and
+        // position are the owner's (they chose the original run-block art).
         Transform run = Find(scene, "run");
-        run.SetParent(header, false);
-        Place(Rect(run), Vector2.one, Vector2.one, new Vector2(-265f, -16f), new Vector2(170f, 170f));
-        Image runImage = run.GetComponent<Image>();
-        runImage.sprite = LoadSprite("Assets/Image/mtiny command blocks/play.png");
-        runImage.preserveAspect = true;
+        if (run.parent != header)
+        {
+            run.SetParent(header, false);
+            Place(Rect(run), Vector2.one, Vector2.one, new Vector2(-274f, -28f), new Vector2(151f, 134f));
+            Image runImage = run.GetComponent<Image>();
+            runImage.sprite = LoadSprite("Assets/Image/mtiny command blocks/New/Layer 42.png");
+            runImage.preserveAspect = true;
+        }
 
         // ---------------- BLOCK PALETTE ----------------
         RectTransform palette = Rect(Find(scene, "commandblock_group"));
