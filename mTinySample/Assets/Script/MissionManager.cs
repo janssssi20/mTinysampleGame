@@ -28,11 +28,8 @@ public class MissionManager : MonoBehaviour
 
     private void Awake()
     {
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
-            return;
-        }
+        // Scene-scoped: the newest scene's manager takes over. Never destroy
+        // the GameObject here; it carries other managers too.
 
         Instance = this;
     }
@@ -179,12 +176,25 @@ public class MissionManager : MonoBehaviour
             return;
         }
 
-        // No failed panel: robot looks sad and the program can be edited again
+        // No failed panel: robot looks sad, then goes back to the start so
+        // the child can add the missing block and try again
+        StartCoroutine(ReturnToStartAfterFail());
+    }
+
+    private System.Collections.IEnumerator ReturnToStartAfterFail()
+    {
         RobotController robot = FindFirstObjectByType<RobotController>();
 
         if (robot != null)
         {
-            robot.StartCoroutine(robot.ShowEmotion(EmotionType.Sad));
+            yield return robot.ShowEmotion(EmotionType.Sad);
+        }
+
+        CommandButtonManager buttons = FindFirstObjectByType<CommandButtonManager>();
+
+        if (buttons != null)
+        {
+            buttons.ReturnRobotToStart();
         }
 
         if (CommandManager.Instance != null)

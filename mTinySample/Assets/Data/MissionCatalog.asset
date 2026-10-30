@@ -1,0 +1,298 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f8f266715b706e6479298b9f87d4f0e1, type: 3}
+  m_Name: MissionCatalog
+  m_EditorClassIdentifier: 
+  missions:
+  - id: E1
+    stage: 0
+    title: Reach the flag
+    instruction: Reach the finish line and have fun!
+    requireMovement: 1
+    requireMultiplier: 0
+    requireEmotion: 0
+    visibleBlocks: 1
+    start: {x: 1, y: 0}
+    path:
+    - {x: 0, y: 0}
+    - {x: 0, y: 1}
+    - {x: 0, y: 2}
+    - {x: 0, y: 3}
+    - {x: 1, y: 3}
+    - {x: 2, y: 3}
+    - {x: 3, y: 3}
+    - {x: 4, y: 3}
+    goal: {x: 5, y: 3}
+    cityTiles: []
+    intendedSolution: L F R F F F R F F F F F
+  - id: E2
+    stage: 0
+    title: Count with multipliers
+    instruction: Use Move and Multiplier blocks.
+    requireMovement: 1
+    requireMultiplier: 1
+    requireEmotion: 0
+    visibleBlocks: 3
+    start: {x: 3, y: 1}
+    path:
+    - {x: 2, y: 1}
+    - {x: 2, y: 0}
+    - {x: 1, y: 0}
+    - {x: 0, y: 0}
+    - {x: 0, y: 1}
+    - {x: 0, y: 2}
+    - {x: 0, y: 3}
+    - {x: 1, y: 3}
+    - {x: 2, y: 3}
+    - {x: 3, y: 3}
+    - {x: 4, y: 3}
+    goal: {x: 5, y: 3}
+    cityTiles: []
+    intendedSolution: L F L F R F 2x R F 3x R F 5x
+  - id: E3
+    stage: 0
+    title: Show a feeling
+    instruction: Use Move, Multiplier and Emotion blocks.
+    requireMovement: 1
+    requireMultiplier: 1
+    requireEmotion: 1
+    visibleBlocks: 7
+    start: {x: 0, y: 3}
+    path:
+    - {x: 1, y: 3}
+    - {x: 1, y: 2}
+    - {x: 1, y: 1}
+    - {x: 2, y: 1}
+    - {x: 3, y: 1}
+    - {x: 4, y: 1}
+    - {x: 4, y: 2}
+    - {x: 4, y: 3}
+    - {x: 5, y: 3}
+    - {x: 6, y: 3}
+    - {x: 6, y: 2}
+    - {x: 6, y: 1}
+    - {x: 6, y: 0}
+    goal: {x: 7, y: 0}
+    cityTiles: []
+    intendedSolution: Happy R F R F 2x L F 3x L F 2x R F 2x R F 3x L F
+  - id: E4
+    stage: 0
+    title: Turn right
+    instruction: Help mTiny turn right to reach the flag!
+    requireMovement: 1
+    requireMultiplier: 0
+    requireEmotion: 0
+    visibleBlocks: 1
+    start: {x: 1, y: 0}
+    path:
+    - {x: 1, y: 1}
+    - {x: 1, y: 2}
+    - {x: 2, y: 2}
+    goal: {x: 3, y: 2}
+    cityTiles: []
+    intendedSolution: F F R F F
+  - id: E5
+    stage: 0
+    title: Happy trip
+    instruction: Make mTiny happy, then go up to the flag!
+    requireMovement: 1
+    requireMultiplier: 1
+    requireEmotion: 1
+    visibleBlocks: 7
+    start: {x: 1, y: 0}
+    path:
+    - {x: 1, y: 1}
+    - {x: 1, y: 2}
+    goal: {x: 1, y: 3}
+    cityTiles: []
+    intendedSolution: Happy F 3x
+  - id: M1
+    stage: 1
+    title: Long road
+    instruction: Turn right and use a multiplier to go far!
+    requireMovement: 1
+    requireMultiplier: 1
+    requireEmotion: 0
+    visibleBlocks: 3
+    start: {x: 0, y: 1}
+    path:
+    - {x: 1, y: 1}
+    - {x: 2, y: 1}
+    - {x: 3, y: 1}
+    goal: {x: 4, y: 1}
+    cityTiles: []
+    intendedSolution: R F 4x
+  - id: M2
+    stage: 1
+    title: Turn left
+    instruction: Go up, turn left, then zoom to the flag!
+    requireMovement: 1
+    requireMultiplier: 1
+    requireEmotion: 0
+    visibleBlocks: 3
+    start: {x: 4, y: 0}
+    path:
+    - {x: 4, y: 1}
+    - {x: 3, y: 1}
+    - {x: 2, y: 1}
+    goal: {x: 1, y: 1}
+    cityTiles: []
+    intendedSolution: F L F 3x
+  - id: M3
+    stage: 1
+    title: Up and over
+    instruction: Climb up high, then turn to the flag!
+    requireMovement: 1
+    requireMultiplier: 1
+    requireEmotion: 0
+    visibleBlocks: 3
+    start: {x: 0, y: 0}
+    path:
+    - {x: 0, y: 1}
+    - {x: 0, y: 2}
+    - {x: 0, y: 3}
+    - {x: 1, y: 3}
+    goal: {x: 2, y: 3}
+    cityTiles: []
+    intendedSolution: F 3x R F 2x
+  - id: M4
+    stage: 1
+    title: Corner
+    instruction: Go up, turn left, and use a big multiplier!
+    requireMovement: 1
+    requireMultiplier: 1
+    requireEmotion: 0
+    visibleBlocks: 3
+    start: {x: 5, y: 0}
+    path:
+    - {x: 5, y: 1}
+    - {x: 5, y: 2}
+    - {x: 4, y: 2}
+    - {x: 3, y: 2}
+    - {x: 2, y: 2}
+    goal: {x: 1, y: 2}
+    cityTiles: []
+    intendedSolution: F 2x L F 4x
+  - id: M5
+    stage: 1
+    title: Climb
+    instruction: Two turns this time. Can you reach the top?
+    requireMovement: 1
+    requireMultiplier: 1
+    requireEmotion: 0
+    visibleBlocks: 3
+    start: {x: 0, y: 0}
+    path:
+    - {x: 0, y: 1}
+    - {x: 1, y: 1}
+    - {x: 2, y: 1}
+    - {x: 3, y: 1}
+    - {x: 3, y: 2}
+    goal: {x: 3, y: 3}
+    cityTiles: []
+    intendedSolution: F R F 3x L F 2x
+  - id: H1
+    stage: 2
+    title: Zig-zag
+    instruction: Show a feeling, then zig-zag to the flag!
+    requireMovement: 1
+    requireMultiplier: 0
+    requireEmotion: 1
+    visibleBlocks: 7
+    start: {x: 1, y: 0}
+    path:
+    - {x: 1, y: 1}
+    - {x: 2, y: 1}
+    goal: {x: 2, y: 2}
+    cityTiles: []
+    intendedSolution: Happy F R F L F
+  - id: H2
+    stage: 2
+    title: Police help
+    instruction: Say hello to the police, then turn left!
+    requireMovement: 1
+    requireMultiplier: 1
+    requireEmotion: 1
+    visibleBlocks: 7
+    start: {x: 2, y: 0}
+    path:
+    - {x: 2, y: 1}
+    - {x: 2, y: 2}
+    - {x: 1, y: 2}
+    goal: {x: 0, y: 2}
+    cityTiles:
+    - cell: {x: 2, y: 1}
+      kind: 2
+    intendedSolution: Surprise F 2x L F 2x
+  - id: H3
+    stage: 2
+    title: Hospital visit
+    instruction: Pass the hospital and reach the flag!
+    requireMovement: 1
+    requireMultiplier: 1
+    requireEmotion: 1
+    visibleBlocks: 7
+    start: {x: 0, y: 0}
+    path:
+    - {x: 0, y: 1}
+    - {x: 0, y: 2}
+    - {x: 1, y: 2}
+    - {x: 2, y: 2}
+    goal: {x: 3, y: 2}
+    cityTiles:
+    - cell: {x: 0, y: 1}
+      kind: 0
+    intendedSolution: Happy F 2x R F 3x
+  - id: H4
+    stage: 2
+    title: School crossing
+    instruction: Watch out for the children crossing!
+    requireMovement: 1
+    requireMultiplier: 1
+    requireEmotion: 1
+    visibleBlocks: 7
+    start: {x: 5, y: 0}
+    path:
+    - {x: 5, y: 1}
+    - {x: 4, y: 1}
+    - {x: 3, y: 1}
+    - {x: 2, y: 1}
+    - {x: 2, y: 2}
+    goal: {x: 2, y: 3}
+    cityTiles:
+    - cell: {x: 5, y: 1}
+      kind: 1
+    intendedSolution: Surprise F L F 3x R F 2x
+  - id: H5
+    stage: 2
+    title: Big city
+    instruction: A big trip across the city. You can do it!
+    requireMovement: 1
+    requireMultiplier: 1
+    requireEmotion: 1
+    visibleBlocks: 7
+    start: {x: 0, y: 0}
+    path:
+    - {x: 0, y: 1}
+    - {x: 0, y: 2}
+    - {x: 0, y: 3}
+    - {x: 1, y: 3}
+    - {x: 2, y: 3}
+    - {x: 3, y: 3}
+    - {x: 4, y: 3}
+    goal: {x: 5, y: 3}
+    cityTiles:
+    - cell: {x: 0, y: 2}
+      kind: 2
+    - cell: {x: 3, y: 3}
+      kind: 0
+    intendedSolution: Happy F 3x R Playful F 5x

@@ -93,7 +93,13 @@ public class GoalZone : MonoBehaviour
             // 4. Display final time
             // 5. Show the finish panel
 
-            commandManager.ShowFinishPanel();
+            int stars = commandManager.ShowFinishPanel();
+
+            // Saves progress, shows Next, or opens the celebration
+            if (MissionRunner.Instance != null)
+            {
+                MissionRunner.Instance.OnMissionWon(stars);
+            }
         }
         else
         {

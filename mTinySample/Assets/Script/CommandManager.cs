@@ -194,12 +194,8 @@ public class CommandManager : MonoBehaviour
 
     private void Awake()
     {
-        // Singleton protection
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
-            return;
-        }
+        // Scene-scoped: the newest scene's manager takes over. Never destroy
+        // the GameObject here; it carries other managers too.
 
         Instance = this;
     }
@@ -890,13 +886,16 @@ public class CommandManager : MonoBehaviour
     // =========================================================
     // FINISH GAME
     // =========================================================
+    // Returns the stars awarded, or 0 if the level was already
+    // finished.
+    // =========================================================
 
-    public void ShowFinishPanel()
+    public int ShowFinishPanel()
     {
         // Prevent duplicate finish calls
         if (gameFinished)
         {
-            return;
+            return 0;
         }
 
         // Stop timer
@@ -932,6 +931,8 @@ public class CommandManager : MonoBehaviour
             $"Time: {FormatTime(elapsedTime)} | " +
             $"Stars: {stars}"
         );
+
+        return stars;
     }
 
 
