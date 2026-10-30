@@ -23,6 +23,13 @@ public class RobotController : MonoBehaviour
     public LayerMask walkableLayer;
 
     // =========================================================
+    // WALL DETECTION
+    // =========================================================
+
+    [Header("Wall Detection")]
+    public LayerMask wallLayer;
+
+    // =========================================================
     // PROGRAM SETTINGS
     // =========================================================
 
@@ -72,47 +79,57 @@ public class RobotController : MonoBehaviour
     }
 
 
-    // =========================================================
-    // RUN PROGRAM
-    // =========================================================
+// =========================================================
+// RUN PROGRAM
+// =========================================================
 
-    public void RunProgram()
+public void RunProgram()
+{
+    if (isExecuting)
     {
-        if (isExecuting)
-        {
-            Debug.LogWarning(
-                "Robot is already executing the program."
-            );
-
-            return;
-        }
-
-        if (commandManager == null)
-        {
-            Debug.LogError(
-                "Cannot run program: CommandManager is missing!"
-            );
-
-            return;
-        }
-
-        if (commandManager.commandList == null ||
-            commandManager.commandList.Count == 0)
-        {
-            Debug.LogWarning(
-                "Cannot run program: Command list is empty!"
-            );
-
-            return;
-        }
-
-        Debug.Log(
-            $"Starting program with " +
-            $"{commandManager.commandList.Count} commands."
+        Debug.LogWarning(
+            "Robot is already executing the program."
         );
 
-        StartCoroutine(ExecuteCommands());
+        return;
     }
+
+    if (commandManager == null)
+    {
+        Debug.LogError(
+            "Cannot run program: CommandManager is missing!"
+        );
+
+        return;
+    }
+
+    if (commandManager.commandList == null ||
+        commandManager.commandList.Count == 0)
+    {
+        Debug.LogWarning(
+            "Cannot run program: Command list is empty!"
+        );
+
+        return;
+    }
+
+    Debug.Log(
+        $"Starting program with " +
+        $"{commandManager.commandList.Count} commands."
+    );
+
+    // =========================================================
+    // HIDE COMMAND SEQUENCE UI
+    // =========================================================
+
+    commandManager.HideSequenceUI();
+
+    // =========================================================
+    // START COMMAND EXECUTION
+    // =========================================================
+
+    StartCoroutine(ExecuteCommands());
+}
 
 
     // =========================================================
@@ -386,6 +403,39 @@ public class RobotController : MonoBehaviour
                 );
 
                 break;
+                        
+            
+            case EmotionType.Emergency:
+
+                commandManager.emotionAnimator.SetTrigger(
+                    "Emergency"
+                );
+
+                break;
+
+            case EmotionType.Polices:
+
+                commandManager.emotionAnimator.SetTrigger(
+                    "Police"
+                );
+
+                break;
+
+            case EmotionType.Crossing:
+
+                commandManager.emotionAnimator.SetTrigger(
+                    "Crossing"
+                );
+
+                break;
+
+            case EmotionType.Theft:
+
+                commandManager.emotionAnimator.SetTrigger(
+                    "Theft"
+                );
+
+                break;
 
 
             default:
@@ -433,6 +483,33 @@ public class RobotController : MonoBehaviour
             $"Moving from {startPos} " +
             $"to {targetPos}"
         );
+
+
+        // =========================================================
+        // WALL CHECK
+        // =========================================================
+
+        float detectionRadius = 0.2f;
+
+        RaycastHit2D wallHit = Physics2D.CircleCast(
+            startPos,
+            detectionRadius,
+            direction,
+            moveDistance,
+            wallLayer
+        );
+
+        if (wallHit.collider != null)
+        {
+            Debug.Log(
+                $"WALL DETECTED: {wallHit.collider.name}"
+            );
+
+            yield return PlayBumped();
+
+            // Robot stays where it is
+            yield break;
+        }
 
         // =====================================================
         // WALKABLE TILE CHECK
@@ -492,7 +569,125 @@ public class RobotController : MonoBehaviour
         Debug.Log(
             "Forward movement completed."
         );
+
+
+        // =====================================================
+        // CHECK SPECIAL TILE
+        // =====================================================
+
+        yield return CheckSpecialTile();
     }
+
+
+
+    private IEnumerator CheckSpecialTile()
+    {
+        Collider2D[] tiles = Physics2D.OverlapCircleAll(
+            rb.position,
+            0.2f
+        );
+
+        Debug.Log(
+            $"Checking special tile at {rb.position}. " +
+            $"Found {tiles.Length} collider(s)."
+        );
+
+        foreach (Collider2D tileCollider in tiles)
+        {
+            if (tileCollider == null)
+                continue;
+
+            SpecialTile specialTile =
+                tileCollider.GetComponent<SpecialTile>();
+
+            if (specialTile == null)
+            {
+                specialTile =
+                    tileCollider.GetComponentInParent<SpecialTile>();
+            }
+
+            if (specialTile == null)
+                continue;
+
+            Debug.Log(
+                $"SPECIAL TILE FOUND: " +
+                $"{specialTile.tileType}"
+            );
+
+            switch (specialTile.tileType)
+            {
+                case TileType.Hospital:
+
+                    Debug.Log("Hospital detected!");
+
+                    yield return ShowEmotion(
+                        EmotionType.Emergency
+                    );
+
+                    break;
+
+
+                case TileType.ChildrenCrossing:
+
+                    Debug.Log(
+                        "School detected!"
+                    );
+ 
+                    yield return ShowEmotion(
+                        EmotionType.Crossing
+                    );
+                    break;
+
+
+
+                case TileType.PoliceStation:
+
+                    Debug.Log(
+                        "Police Station detected!"
+                    );
+                    yield return ShowEmotion(
+                        EmotionType.Polices
+                    );
+
+
+                    break;
+
+                case TileType.TheftIncident:
+
+                    Debug.Log(
+                        "Theft detected!"
+                    );
+
+                    yield return ShowEmotion(
+                        EmotionType.Theft
+                    );
+
+                    break;
+
+                case TileType.BumpedIncident:
+
+                    Debug.Log(
+                        "bumped detected!"
+                    );
+
+                    break;
+
+                case TileType.Construction:
+
+                    Debug.Log(
+                        "construction detected!"
+                    );
+
+                    break;
+            }
+
+            break;
+        }
+    }
+
+
+
+
 
 
     // =========================================================
@@ -599,5 +794,130 @@ public class RobotController : MonoBehaviour
 
             transform.position = p;
         }
+    }
+
+    private IEnumerator HandleSpecialTile(
+        TileType tileType)
+    {
+        switch (tileType)
+        {
+            // =====================================================
+            // HOSPITAL
+            // =====================================================
+
+            case TileType.Hospital:
+
+                Debug.Log(
+                    "Robot reached Hospital!"
+                );
+
+                if (commandManager.emotionPanel != null &&
+                    commandManager.emotionAnimator != null)
+                {
+                    commandManager.emotionPanel.SetActive(true);
+
+                    commandManager.emotionAnimator.SetTrigger(
+                        "Emergency"
+                    );
+
+                    yield return new WaitForSeconds(3f);
+
+                    commandManager.emotionPanel.SetActive(false);
+                }
+
+                break;
+
+
+            // =====================================================
+            // SCHOOL
+            // =====================================================
+
+            case TileType.ChildrenCrossing:
+
+                Debug.Log(
+                    "Robot reached School!"
+                );
+
+                // Example:
+                // Play another animation here.
+
+                break;
+
+
+
+            // =====================================================
+            // POLICE STATION
+            // =====================================================
+
+            case TileType.PoliceStation:
+
+                Debug.Log(
+                    "Robot reached Police Station!"
+                );
+
+                break;
+
+
+            // =====================================================
+            // NONE
+            // =====================================================
+
+            case TileType.None:
+            default:
+
+                break;
+        }
+    }
+
+    // =========================================================
+    // BUMPED EMOTION
+    // =========================================================
+
+    private IEnumerator PlayBumped()
+    {
+        if (commandManager == null)
+        {
+            Debug.LogError(
+                "Cannot play Bumped: CommandManager is missing!"
+            );
+
+            yield break;
+        }
+
+        if (commandManager.emotionPanel == null)
+        {
+            Debug.LogError(
+                "Cannot play Bumped: Emotion Panel is not assigned!"
+            );
+
+            yield break;
+        }
+
+        if (commandManager.emotionAnimator == null)
+        {
+            Debug.LogError(
+                "Cannot play Bumped: Emotion Animator is not assigned!"
+            );
+
+            yield break;
+        }
+
+        Debug.Log(
+            "ROBOT BUMPED INTO A WALL!"
+        );
+
+        // Show emotion panel
+        commandManager.emotionPanel.SetActive(true);
+
+        // Play Bumped animation
+        commandManager.emotionAnimator.SetTrigger(
+            "Bumped"
+        );
+
+        // Keep animation visible
+        yield return new WaitForSeconds(3f);
+
+        // Hide emotion panel
+        commandManager.emotionPanel.SetActive(false);
     }
 }

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using TMPro;
 
 public enum CommandType
 {
@@ -19,7 +20,11 @@ public enum EmotionType
     Surprise,
     Dizzy,
     Sleepy,
-    Playful
+    Playful,
+    Emergency,
+    Polices,
+    Crossing,
+    Theft
 }
 
 [System.Serializable]
@@ -53,10 +58,22 @@ public class CommandManager : MonoBehaviour
 {
     public static CommandManager Instance;
 
+    // =========================================================
+    // COMMAND LIST
+    // =========================================================
+
     [Header("Command List")]
     public List<Command> commandList = new List<Command>();
 
     private SequenceUIManager uiManager;
+
+    // =========================================================
+    // COMMAND SEQUENCE UI
+    // =========================================================
+
+    [Header("Command Sequence UI")]
+    [Tooltip("The GameObject containing the command sequence UI.")]
+    public GameObject sequenceUI;
 
     // =========================================================
     // COMMAND ICONS
@@ -101,11 +118,50 @@ public class CommandManager : MonoBehaviour
     public Animator emotionAnimator;
 
     // =========================================================
-    // PROGRAM UI
+    // INSTRUCTION PANEL
     // =========================================================
 
-    [Header("Program UI")]
+    [Header("Instruction Panel")]
+    public GameObject instructionPanel;
+
+    // =========================================================
+    // TIMER
+    // =========================================================
+
+    [Header("Game Timer")]
+    public TMP_Text timerText;
+
+    private float elapsedTime = 0f;
+
+    private bool gameStarted = false;
+
+    private bool gameFinished = false;
+
+    // =========================================================
+    // FINISH PANEL
+    // =========================================================
+
+    [Header("Finish Panel")]
     public GameObject finishPanel;
+
+    [Tooltip("TMP text that displays the final completion time.")]
+    public TMP_Text finishTimeText;
+
+    // =========================================================
+    // STAR RATING
+    // =========================================================
+
+    [Header("Star Rating")]
+    [Tooltip("Prefab used to display one earned star.")]
+    public GameObject starPrefab;
+
+    [Tooltip("Parent Transform where generated stars will appear.")]
+    public Transform starContainer;
+
+
+    // Stores generated stars
+    private List<GameObject> generatedStars =
+        new List<GameObject>();
 
     // =========================================================
     // CURRENT MULTIPLIER
@@ -114,6 +170,20 @@ public class CommandManager : MonoBehaviour
     [Header("Current Multiplier")]
     [Range(1, 5)]
     public int currentMultiplier = 1;
+
+
+    // =========================================================
+    // CUSTOM CURSOR
+    // =========================================================
+
+    [Header("Custom Cursor")]
+    public Texture2D cursorTexture;
+
+    [Tooltip("Pixel position of the pointer inside the cursor image.")]
+    public Vector2 cursorHotspot = new Vector2(25, 80);
+
+    [Tooltip("Cursor rendering mode.")]
+    public CursorMode cursorMode = CursorMode.Auto;
 
 
     // =========================================================
@@ -139,7 +209,11 @@ public class CommandManager : MonoBehaviour
 
     private void Start()
     {
-        uiManager = FindFirstObjectByType<SequenceUIManager>();
+
+        SetCustomCursor();
+
+        uiManager =
+            FindFirstObjectByType<SequenceUIManager>();
 
         if (uiManager == null)
         {
@@ -148,124 +222,346 @@ public class CommandManager : MonoBehaviour
             );
         }
 
+        // ---------------------------------------------------------
+        // FINISH PANEL
+        // ---------------------------------------------------------
+
         if (finishPanel != null)
         {
             finishPanel.SetActive(false);
         }
 
+        // ---------------------------------------------------------
+        // EMOTION PANEL
+        // ---------------------------------------------------------
+
         if (emotionPanel != null)
         {
             emotionPanel.SetActive(false);
+        }
+
+        // ---------------------------------------------------------
+        // INSTRUCTION PANEL
+        // ---------------------------------------------------------
+
+        if (instructionPanel != null)
+        {
+            instructionPanel.SetActive(true);
+        }
+        else
+        {
+            Debug.LogWarning(
+                "CommandManager: Instruction Panel is not assigned!"
+            );
+        }
+
+        // ---------------------------------------------------------
+        // SEQUENCE UI
+        // ---------------------------------------------------------
+
+        if (sequenceUI != null)
+        {
+            sequenceUI.SetActive(true);
+        }
+        else
+        {
+            Debug.LogWarning(
+                "CommandManager: Sequence UI is not assigned!"
+            );
+        }
+
+        // ---------------------------------------------------------
+        // TIMER
+        // ---------------------------------------------------------
+
+        elapsedTime = 0f;
+
+        gameStarted = false;
+
+        gameFinished = false;
+
+        UpdateTimerUI();
+
+        // ---------------------------------------------------------
+        // CLEAR STARS
+        // ---------------------------------------------------------
+
+        ClearGeneratedStars();
+    }
+
+
+    // =========================================================
+    // SET CUSTOM CURSOR
+    // =========================================================
+
+    private void SetCustomCursor()
+    {
+        if (cursorTexture == null)
+        {
+            Debug.LogWarning(
+                "CommandManager: Cursor Texture is not assigned!"
+            );
+
+            return;
+        }
+
+        Cursor.SetCursor(
+            cursorTexture,
+            cursorHotspot,
+            cursorMode
+        );
+
+        Debug.Log(
+            $"Custom cursor applied. " +
+            $"Hotspot: {cursorHotspot}"
+        );
+    }
+
+    // =========================================================
+    // UPDATE
+    // =========================================================
+
+    private void Update()
+    {
+        // Timer only runs after StartGame()
+        if (gameStarted && !gameFinished)
+        {
+            elapsedTime += Time.unscaledDeltaTime;
+
+            UpdateTimerUI();
         }
     }
 
 
     // =========================================================
-    // ADD NORMAL COMMAND
+    // START GAME
     // =========================================================
+
+    public void StartGame()
+    {
+        // Prevent multiple starts
+        if (gameStarted)
+        {
+            return;
+        }
+
+        // Close instruction panel
+        if (instructionPanel != null)
+        {
+            instructionPanel.SetActive(false);
+        }
+
+        // Make sure finish panel is hidden
+        if (finishPanel != null)
+        {
+            finishPanel.SetActive(false);
+        }
+
+        // Make sure sequence UI is visible
+        if (sequenceUI != null)
+        {
+            sequenceUI.SetActive(true);
+        }
+
+        // Clear previous stars
+        ClearGeneratedStars();
+
+        // Reset timer
+        elapsedTime = 0f;
+
+        // Start game
+        gameStarted = true;
+
+        gameFinished = false;
+
+        // Immediately update timer
+        UpdateTimerUI();
+
+        Debug.Log(
+            "Game started. Timer is now running."
+        );
+    }
+
+
+    // =========================================================
+    // HIDE SEQUENCE UI
+    // =========================================================
+    // Call this when command execution begins.
+    // =========================================================
+
+    public void HideSequenceUI()
+    {
+        if (sequenceUI != null)
+        {
+            sequenceUI.SetActive(false);
+
+            Debug.Log(
+                "Command Sequence UI hidden."
+            );
+        }
+        else
+        {
+            Debug.LogWarning(
+                "CommandManager: Sequence UI is not assigned!"
+            );
+        }
+    }
+
+
+    // =========================================================
+    // SHOW SEQUENCE UI
+    // =========================================================
+    // Called when the Reset button is pressed.
+    // =========================================================
+
+    public void ShowSequenceUI()
+    {
+        if (sequenceUI != null)
+        {
+            sequenceUI.SetActive(true);
+
+            Debug.Log(
+                "Command Sequence UI shown."
+            );
+        }
+        else
+        {
+            Debug.LogWarning(
+                "CommandManager: Sequence UI is not assigned!"
+            );
+        }
+    }
+
+
+    // =========================================================
+    // UPDATE TIMER UI
+    // =========================================================
+
+    private void UpdateTimerUI()
+    {
+        if (timerText == null)
+        {
+            return;
+        }
+
+        timerText.text =
+            FormatTime(elapsedTime);
+    }
+
+
+    // =========================================================
+    // FORMAT TIME
+    // =========================================================
+
+    private string FormatTime(float time)
+    {
+        int minutes =
+            Mathf.FloorToInt(time / 60f);
+
+        int seconds =
+            Mathf.FloorToInt(time % 60f);
+
+        return string.Format(
+            "{0:00}:{1:00}",
+            minutes,
+            seconds
+        );
+    }
+
+
+    // =========================================================
+    // GET ELAPSED TIME
+    // =========================================================
+
+    public float GetElapsedTime()
+    {
+        return elapsedTime;
+    }
+
+
+ // =========================================================
+// ADD NORMAL COMMAND (Defaults to 1x initially)
+// =========================================================
 
     public void AddCommand(CommandType type)
     {
-        // Emotion commands must use AddEmotion()
         if (type == CommandType.Emotion)
         {
             Debug.LogWarning(
                 "AddCommand(CommandType.Emotion) was called. " +
                 "Use AddEmotion(EmotionType) instead."
             );
-
             return;
         }
 
-        int multiplier = currentMultiplier;
-
-        // Start and Run flags should not be repeated.
-        if (type == CommandType.StartFlag ||
-            type == CommandType.RunFlag)
-        {
-            multiplier = 1;
-        }
-
-        // Store the command
-        Command newCommand = new Command(
-            type,
-            multiplier
-        );
-
+        // Add command with a default repeat count of 1
+        Command newCommand = new Command(type, 1);
         commandList.Add(newCommand);
 
-        // IMPORTANT:
-        // The multiplier icon is NOT added here.
-        //
-        // SetMultiplier() already added the multiplier icon
-        // when the multiplier button was pressed.
-
-        // Add command icon
+        // Add command visual block
         AddCommandVisual(type);
 
-        Debug.Log(
-            $"Added command: {type} x{multiplier}"
-        );
-
-        // Reset multiplier after command is used
-        currentMultiplier = 1;
+        Debug.Log($"Added command: {type} x1");
     }
 
 
     // =========================================================
-    // ADD EMOTION COMMAND
+    // ADD EMOTION COMMAND (Defaults to 1x initially)
     // =========================================================
 
     public void AddEmotion(EmotionType emotionType)
     {
-        int multiplier = currentMultiplier;
-
-        // Store emotion command
+        // Store emotion command with a default repeat count of 1
         Command newCommand = new Command(
             CommandType.Emotion,
             emotionType,
-            multiplier
+            1
         );
 
         commandList.Add(newCommand);
 
-        // IMPORTANT:
-        // Multiplier icon was already added by SetMultiplier().
-
-        // Add emotion icon
+        // Add emotion visual block
         AddEmotionVisual(emotionType);
 
-        Debug.Log(
-            $"Added emotion: {emotionType} x{multiplier}"
-        );
-
-        // Reset multiplier
-        currentMultiplier = 1;
+        Debug.Log($"Added emotion: {emotionType} x1");
     }
 
 
     // =========================================================
-    // ORIGINAL MULTIPLIER FUNCTION
+    // SET MULTIPLIER (Modifies the PREVIOUS command)
     // =========================================================
 
     public void SetMultiplier(int multiplier)
     {
-        // Clamp multiplier between 1x and 5x
-        currentMultiplier = Mathf.Clamp(
-            multiplier,
-            1,
-            5
-        );
+        // Make sure there is a command to modify
+        if (commandList.Count == 0)
+        {
+            Debug.LogWarning(
+                "Cannot apply multiplier: No previous command found in the list!"
+            );
+            return;
+        }
 
-        // ORIGINAL BEHAVIOR:
-        // Immediately show the multiplier icon
-        // when the multiplier button is pressed.
+        int clampedMultiplier = Mathf.Clamp(multiplier, 1, 5);
 
+        // Get the last command added to the list
+        Command lastCommand = commandList[commandList.Count - 1];
+
+        // Start and Run flags cannot be multiplied
+        if (lastCommand.commandType == CommandType.StartFlag ||
+            lastCommand.commandType == CommandType.RunFlag)
+        {
+            Debug.LogWarning("Start and Run flags cannot be multiplied!");
+            return;
+        }
+
+        // Update the repeat count of the previous command
+        lastCommand.repeatCount = clampedMultiplier;
+
+        // Display the multiplier visual block in the UI sequence
         if (uiManager != null)
         {
-            Sprite icon = GetMultiplierIcon(
-                currentMultiplier
-            );
+            Sprite icon = GetMultiplierIcon(clampedMultiplier);
 
             if (icon != null)
             {
@@ -274,7 +570,7 @@ public class CommandManager : MonoBehaviour
         }
 
         Debug.Log(
-            $"Multiplier set to {currentMultiplier}x"
+            $"Multiplier {clampedMultiplier}x applied to previous command: {lastCommand.commandType}"
         );
     }
 
@@ -283,14 +579,16 @@ public class CommandManager : MonoBehaviour
     // UI - COMMAND
     // =========================================================
 
-    private void AddCommandVisual(CommandType type)
+    private void AddCommandVisual(
+        CommandType type)
     {
         if (uiManager == null)
         {
             return;
         }
 
-        Sprite icon = GetCommandIcon(type);
+        Sprite icon =
+            GetCommandIcon(type);
 
         if (icon != null)
         {
@@ -309,16 +607,18 @@ public class CommandManager : MonoBehaviour
     // UI - EMOTION
     // =========================================================
 
-    private void AddEmotionVisual(EmotionType emotionType)
+    private void AddEmotionVisual(
+        EmotionType emotionType)
     {
         if (uiManager == null)
         {
             return;
         }
 
-        Sprite icon = GetEmotionIcon(
-            emotionType
-        );
+        Sprite icon =
+            GetEmotionIcon(
+                emotionType
+            );
 
         if (icon != null)
         {
@@ -337,7 +637,8 @@ public class CommandManager : MonoBehaviour
     // GET COMMAND ICON
     // =========================================================
 
-    private Sprite GetCommandIcon(CommandType type)
+    private Sprite GetCommandIcon(
+        CommandType type)
     {
         switch (type)
         {
@@ -366,7 +667,8 @@ public class CommandManager : MonoBehaviour
     // GET MULTIPLIER ICON
     // =========================================================
 
-    private Sprite GetMultiplierIcon(int multiplier)
+    private Sprite GetMultiplierIcon(
+        int multiplier)
     {
         switch (multiplier)
         {
@@ -383,7 +685,6 @@ public class CommandManager : MonoBehaviour
                 return multiplier5xIcon;
 
             default:
-                // 1x has no icon
                 return null;
         }
     }
@@ -431,19 +732,18 @@ public class CommandManager : MonoBehaviour
 
     public void ClearCommands()
     {
-        // Clear stored commands
         commandList.Clear();
 
-        // Reset multiplier
         currentMultiplier = 1;
 
-        // Clear visual UI
         if (uiManager != null)
         {
             uiManager.ClearUI();
         }
 
-        Debug.Log("All commands cleared.");
+        Debug.Log(
+            "All commands cleared."
+        );
     }
 
 
@@ -490,17 +790,191 @@ public class CommandManager : MonoBehaviour
 
 
     // =========================================================
-    // FINISH PANEL
+    // FINISH GAME
     // =========================================================
 
     public void ShowFinishPanel()
     {
+        // Prevent duplicate finish calls
+        if (gameFinished)
+        {
+            return;
+        }
+
+        // Stop timer
+        gameFinished = true;
+
+        gameStarted = false;
+
+        // Calculate stars
+        int stars =
+            CalculateStarRating(
+                elapsedTime
+            );
+
+        // Display final time
+        if (finishTimeText != null)
+        {
+            finishTimeText.text =
+                "Time: " +
+                FormatTime(elapsedTime);
+        }
+
+        // Generate star prefabs
+        GenerateStars(stars);
+
+        // Show finish panel
         if (finishPanel != null)
         {
             finishPanel.SetActive(true);
         }
+
+        Debug.Log(
+            $"Game finished! " +
+            $"Time: {FormatTime(elapsedTime)} | " +
+            $"Stars: {stars}"
+        );
     }
 
+
+    // =========================================================
+    // CALCULATE STAR RATING
+    // =========================================================
+
+    private int CalculateStarRating(
+        float time)
+    {
+        // Under 1:30
+        // 3 stars
+        if (time < 90f)
+        {
+            return 3;
+        }
+
+        // 1:30 to 2:00
+        // 2 stars
+        if (time <= 120f)
+        {
+            return 2;
+        }
+
+        // Over 2:00
+        // 1 star
+        return 1;
+    }
+
+
+    // =========================================================
+    // GENERATE STAR PREFABS
+    // =========================================================
+
+    private void GenerateStars(
+        int starCount)
+    {
+        // Remove existing stars first
+        ClearGeneratedStars();
+
+        // Make sure prefab exists
+        if (starPrefab == null)
+        {
+            Debug.LogError(
+                "CommandManager: " +
+                "Star Prefab is not assigned!"
+            );
+
+            return;
+        }
+
+        // Make sure container exists
+        if (starContainer == null)
+        {
+            Debug.LogError(
+                "CommandManager: " +
+                "Star Container is not assigned!"
+            );
+
+            return;
+        }
+
+        // Generate earned stars
+        for (int i = 0;
+             i < starCount;
+             i++)
+        {
+            GameObject newStar =
+                Instantiate(
+                    starPrefab,
+                    starContainer
+                );
+
+            // Reset UI transform
+            RectTransform rect =
+                newStar.GetComponent<
+                    RectTransform>();
+
+            if (rect != null)
+            {
+                rect.localScale =
+                    Vector3.one;
+
+                rect.localRotation =
+                    Quaternion.identity;
+            }
+
+            generatedStars.Add(
+                newStar
+            );
+        }
+
+        Debug.Log(
+            $"Generated {starCount} star prefab(s)."
+        );
+    }
+
+
+    // =========================================================
+    // CLEAR GENERATED STARS
+    // =========================================================
+
+    private void ClearGeneratedStars()
+    {
+        // Destroy stars created by this script
+        for (int i =
+             generatedStars.Count - 1;
+             i >= 0;
+             i--)
+        {
+            if (generatedStars[i] != null)
+            {
+                Destroy(
+                    generatedStars[i]
+                );
+            }
+        }
+
+        generatedStars.Clear();
+
+        // Clear existing children
+        if (starContainer != null)
+        {
+            for (int i =
+                 starContainer.childCount - 1;
+                 i >= 0;
+                 i--)
+            {
+                Destroy(
+                    starContainer
+                        .GetChild(i)
+                        .gameObject
+                );
+            }
+        }
+    }
+
+
+    // =========================================================
+    // HIDE FINISH PANEL
+    // =========================================================
 
     public void HideFinishPanel()
     {
@@ -508,5 +982,64 @@ public class CommandManager : MonoBehaviour
         {
             finishPanel.SetActive(false);
         }
+    }
+
+
+    // =========================================================
+    // RESET GAME
+    // =========================================================
+
+    public void ResetGameTimer()
+    {
+        elapsedTime = 0f;
+
+        gameStarted = false;
+
+        gameFinished = false;
+
+        // Clear stars
+        ClearGeneratedStars();
+
+        // Hide finish panel
+        if (finishPanel != null)
+        {
+            finishPanel.SetActive(false);
+        }
+
+        // Show instruction panel
+        if (instructionPanel != null)
+        {
+            instructionPanel.SetActive(true);
+        }
+
+        // Show command sequence UI again
+        ShowSequenceUI();
+
+        // Reset timer display
+        UpdateTimerUI();
+
+        Debug.Log(
+            "Game timer reset."
+        );
+    }
+
+
+    // =========================================================
+    // CHECK GAME STARTED
+    // =========================================================
+
+    public bool IsGameStarted()
+    {
+        return gameStarted;
+    }
+
+
+    // =========================================================
+    // CHECK GAME FINISHED
+    // =========================================================
+
+    public bool IsGameFinished()
+    {
+        return gameFinished;
     }
 }

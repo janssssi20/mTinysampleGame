@@ -56,6 +56,11 @@ public class CommandButtonManager : MonoBehaviour
         }
 
         startButton.interactable = true;
+        
+        //  commandManager.emotionAnimator.enabled = false;
+
+        commandManager.emotionPanel.SetActive(false);
+        commandManager.ShowSequenceUI();
 
         robot.StopProgram();
 

@@ -1,8 +1,13 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class MissionManager : MonoBehaviour
 {
     public static MissionManager Instance;
+
+    [Header("Scene Settings")]
+    [Tooltip("Name of the home or main menu scene.")]
+    public string homeSceneName = "HomeScene";
 
     [Header("Mission Requirements")]
     public bool requireMovement = true;
@@ -153,5 +158,28 @@ public class MissionManager : MonoBehaviour
     public bool IsMissionComplete()
     {
         return missionCompleted;
+    }
+
+    /// <summary>
+    /// Call this method from your Home UI button to load the scene with the loading screen.
+    /// </summary>
+    public void ReturnToHome()
+    {
+        if (string.IsNullOrEmpty(homeSceneName))
+        {
+            Debug.LogError("Home Scene Name is not set in the MissionManager inspector!");
+            return;
+        }
+
+        // Use LoadingManager if it exists, otherwise fallback to direct load
+        if (LoadingManager.Instance != null)
+        {
+            LoadingManager.Instance.LoadScene(homeSceneName);
+        }
+        else
+        {
+            Debug.LogWarning("LoadingManager instance not found. Loading scene directly.");
+            SceneManager.LoadScene(homeSceneName);
+        }
     }
 }
