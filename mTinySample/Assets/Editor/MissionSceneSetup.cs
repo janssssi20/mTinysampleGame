@@ -18,7 +18,8 @@ public static class MissionSceneSetup
     private const string CatalogPath = "Assets/Data/MissionCatalog.asset";
 
     // Board must stay inside the area Mission1-3 used for their tiles
-    private static readonly Rect PlayArea = new Rect(-7.4f, -3.9f, 12.8f, 6.2f);
+    // Tile centres must stay clear of the header (top) and block palette (right)
+    private static readonly Rect PlayArea = new Rect(-8.0f, -4.0f, 13.0f, 6.1f);
 
     [MenuItem("mTiny/Setup/Create Mission Scene")]
     public static void CreateMissionScene()

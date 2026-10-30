@@ -71,8 +71,13 @@ public class StageMapUI : MonoBehaviour
     public Color lockedColor = new Color(0.75f, 0.75f, 0.75f);
     public Color starOnColor = Color.white;
     public Color starOffColor = new Color(1f, 1f, 1f, 0.25f);
+    public Color lockedCardTint = new Color(0.72f, 0.72f, 0.72f);
 
     private MissionProgress progress;
+
+    // Created on first use so editor previews work outside play mode
+    private MissionProgress Progress =>
+        progress ?? (progress = new MissionProgress(catalog, new PlayerPrefsProgressStore()));
     private List<int> stageMissions = new List<int>();
 
 
@@ -99,9 +104,14 @@ public class StageMapUI : MonoBehaviour
             int maxStars = catalog.IndicesInStage(stage).Count * 3;
 
             stageCards[i].starsText.text =
-                StageMapModel.StarCountText(progress.GetStageStars(stage), maxStars);
+                StageMapModel.StarCountText(Progress.GetStageStars(stage), maxStars);
 
-            stageCards[i].lockIcon.SetActive(!progress.IsStageUnlocked(stage));
+            bool unlocked = Progress.IsStageUnlocked(stage);
+
+            stageCards[i].lockIcon.SetActive(!unlocked);
+
+            // Locked stages look greyed out, not just padlocked
+            stageCards[i].button.image.color = unlocked ? Color.white : lockedCardTint;
         }
 
         if (trailPanel != null && trailPanel.activeSelf)
@@ -117,7 +127,7 @@ public class StageMapUI : MonoBehaviour
 
     public void OnStagePressed(int stage)
     {
-        if (!progress.IsStageUnlocked((MissionStage)stage))
+        if (!Progress.IsStageUnlocked((MissionStage)stage))
         {
             StartCoroutine(Wiggle(stageCards[stage].lockIcon.transform));
             return;
@@ -168,7 +178,7 @@ public class StageMapUI : MonoBehaviour
 
         int index = stageMissions[slot];
 
-        if (!progress.IsMissionUnlocked(index))
+        if (!Progress.IsMissionUnlocked(index))
         {
             return;
         }
@@ -202,11 +212,25 @@ public class StageMapUI : MonoBehaviour
             }
 
             int index = stageMissions[slot];
-            NodeState state = StageMapModel.GetNodeState(progress, index);
-            int best = progress.GetBestStars(index);
+            NodeState state = StageMapModel.GetNodeState(Progress, index);
+            int best = Progress.GetBestStars(index);
 
             node.button.interactable = state != NodeState.Locked;
+
+            // The mission to play next gently pulses
+            PulseScale pulse = node.button.GetComponent<PulseScale>();
+            if (pulse != null)
+            {
+                pulse.enabled = state == NodeState.Next;
+            }
             node.lockIcon.SetActive(state == NodeState.Locked);
+
+            // A locked node shows only its padlock, not the number behind it
+            TMPro.TMP_Text number = node.button.GetComponentInChildren<TMPro.TMP_Text>(true);
+            if (number != null)
+            {
+                number.enabled = state != NodeState.Locked;
+            }
 
             node.background.color =
                 state == NodeState.Done ? doneColor :

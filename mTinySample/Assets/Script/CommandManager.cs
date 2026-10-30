@@ -2,57 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 
-public enum CommandType
-{
-    Forward,
-    TurnLeft,
-    TurnRight,
-    StartFlag,
-    RunFlag,
-    Emotion
-}
-
-public enum EmotionType
-{
-    Happy,
-    Sad,
-    Angry,
-    Surprise,
-    Dizzy,
-    Sleepy,
-    Playful,
-    Emergency,
-    Polices,
-    Crossing,
-    Theft
-}
-
-[System.Serializable]
-public class Command
-{
-    public CommandType commandType;
-    public EmotionType emotion;
-    public int repeatCount;
-
-    // Constructor for normal commands
-    public Command(CommandType type, int repeat = 1)
-    {
-        commandType = type;
-        emotion = EmotionType.Happy;
-        repeatCount = Mathf.Max(1, repeat);
-    }
-
-    // Constructor for emotion commands
-    public Command(
-        CommandType type,
-        EmotionType emotionType,
-        int repeat = 1)
-    {
-        commandType = type;
-        emotion = emotionType;
-        repeatCount = Mathf.Max(1, repeat);
-    }
-}
+// CommandType, EmotionType and Command live in Missions/ProgramTypes.cs
 
 public class CommandManager : MonoBehaviour
 {
@@ -750,6 +700,46 @@ public class CommandManager : MonoBehaviour
 
             default:
                 return null;
+        }
+    }
+
+
+    // =========================================================
+    // UNDO LAST BLOCK
+    // =========================================================
+    // Called by the Undo button. Takes back the last block (or its
+    // multiplier) without clearing the whole program.
+    // =========================================================
+
+    public void RemoveLastBlock()
+    {
+        if (!CanEditProgram())
+        {
+            return;
+        }
+
+        int iconsToRemove = ProgramEdits.Undo(commandList);
+
+        if (iconsToRemove > 0 && uiManager != null)
+        {
+            uiManager.RemoveLastBlock();
+        }
+
+        lastBlockIsMultiplier =
+            commandList.Count > 0 &&
+            commandList[commandList.Count - 1].repeatCount > 1;
+    }
+
+
+    // =========================================================
+    // SHOW INSTRUCTION PANEL
+    // =========================================================
+
+    public void ShowInstructionPanel()
+    {
+        if (instructionPanel != null)
+        {
+            instructionPanel.SetActive(true);
         }
     }
 

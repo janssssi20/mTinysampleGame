@@ -47,6 +47,21 @@ public class MissionBoardBuilder : MonoBehaviour
     public MissionManager missionManager;
     public TMP_Text instructionText;
 
+    [Tooltip("Mission title on the instruction card.")]
+    public TMP_Text titleText;
+
+    // =========================================================
+    // INSTRUCTION HINTS
+    // =========================================================
+    // Pictures of the blocks a mission needs, for children who
+    // can't read the instruction yet.
+    // =========================================================
+
+    [Header("Instruction Hints")]
+    public GameObject movementHint;
+    public GameObject multiplierHint;
+    public GameObject emotionHint;
+
     // =========================================================
     // BLOCK BUTTONS
     // =========================================================
@@ -109,8 +124,17 @@ public class MissionBoardBuilder : MonoBehaviour
 
         if (instructionText != null)
         {
-            instructionText.text = "* " + Current.instruction;
+            instructionText.text = Current.instruction;
         }
+
+        if (titleText != null)
+        {
+            titleText.text = Current.title;
+        }
+
+        SetHint(movementHint, Current.requireMovement);
+        SetHint(multiplierHint, Current.requireMultiplier);
+        SetHint(emotionHint, Current.requireEmotion);
 
         SetBlocksVisible(movementBlocks, (Current.visibleBlocks & BlockGroups.Movement) != 0);
         SetBlocksVisible(multiplierBlocks, (Current.visibleBlocks & BlockGroups.Multiplier) != 0);
@@ -194,6 +218,14 @@ public class MissionBoardBuilder : MonoBehaviour
             {
                 DestroyImmediate(child);
             }
+        }
+    }
+
+    private static void SetHint(GameObject hint, bool visible)
+    {
+        if (hint != null)
+        {
+            hint.SetActive(visible);
         }
     }
 

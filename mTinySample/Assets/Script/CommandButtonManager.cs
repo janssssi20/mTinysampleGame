@@ -105,6 +105,16 @@ public class CommandButtonManager : MonoBehaviour
         {
             goal.ResetGoal();
         }
+
+        // The start flag is placed for the child: mid-level, straight away;
+        // after a finished level, once they press Start on the mission card.
+        if (CommandManager.Instance != null)
+        {
+            if (CommandManager.Instance.IsGameStarted())
+                OnStartPressed();
+            else
+                CommandManager.Instance.ShowInstructionPanel();
+        }
     }
 
     // Puts the robot back on the start tile and re-arms the goal, but
