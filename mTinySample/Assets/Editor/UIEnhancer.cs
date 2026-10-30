@@ -270,6 +270,20 @@ public static class UIEnhancer
             Transform panel = Find(scene, panelName);
             Transform buttons = Find(scene, "buttons", panel);
 
+            // Centre whichever buttons are showing (Next hides on the last mission)
+            RectTransform row = Rect(buttons);
+            row.anchoredPosition = new Vector2(0f, 14f);
+            HorizontalLayoutGroup rowLayout = buttons.GetComponent<HorizontalLayoutGroup>();
+            rowLayout.childAlignment = TextAnchor.MiddleCenter;
+            rowLayout.spacing = 30f;
+            rowLayout.childControlWidth = false;
+            rowLayout.childControlHeight = false;
+            rowLayout.childForceExpandWidth = false;
+            rowLayout.childForceExpandHeight = false;
+
+            Transform stars = Find(scene, "starContainer", panel);
+            if (stars != null) Rect(stars).anchoredPosition = new Vector2(0f, -50f);
+
             foreach (Button button in buttons.GetComponentsInChildren<Button>(true))
             {
                 string icon =
@@ -310,11 +324,11 @@ public static class UIEnhancer
 
         RectTransform star = Rect(Find(scene, "celebrationStar", celebration));
         star.sizeDelta = new Vector2(150f, 150f);
-        star.anchoredPosition = new Vector2(-250f, -20f);
+        star.anchoredPosition = new Vector2(-300f, -20f);
         if (star.GetComponent<PulseScale>() == null) star.gameObject.AddComponent<PulseScale>().amount = 0.12f;
 
         TMP_Text total = Find(scene, "finishTime", celebration).GetComponent<TMP_Text>();
-        Place(Rect(total.transform), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-30f, -20f), new Vector2(300f, 150f));
+        Place(Rect(total.transform), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-50f, -20f), new Vector2(300f, 150f));
         total.fontSize = 110;
     }
 
