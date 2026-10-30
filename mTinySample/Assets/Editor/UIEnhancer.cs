@@ -276,23 +276,27 @@ public static class UIEnhancer
                     button.name == "replayButton" ? "icon_replay" :
                     button.name == "nextButton" ? "icon_play" : "icon_home";
 
+                // Match the pill art's proportions so icon and label sit on it
                 RectTransform rect = Rect(button.transform);
-                rect.sizeDelta = new Vector2(300f, 200f);
+                rect.sizeDelta = new Vector2(300f, 136f);
+                Image pill = button.GetComponent<Image>();
+                pill.preserveAspect = false;
 
                 Image iconImage = MainMenuSetup.EnsureImage(button.transform, "icon", LoadIcon(icon),
-                    new Vector2(0f, 0.5f), new Vector2(85f, 6f), new Vector2(96f, 96f));
+                    new Vector2(0f, 0.5f), new Vector2(62f, 4f), new Vector2(72f, 72f));
                 iconImage.raycastTarget = false;
 
                 TMP_Text label = button.GetComponentInChildren<TMP_Text>(true);
                 RectTransform labelRect = Rect(label.transform);
                 labelRect.anchorMin = Vector2.zero;
                 labelRect.anchorMax = Vector2.one;
-                labelRect.offsetMin = new Vector2(130f, 0f);
-                labelRect.offsetMax = new Vector2(-14f, 0f);
-                label.fontSize = 44;
+                labelRect.offsetMin = new Vector2(100f, 0f);
+                labelRect.offsetMax = new Vector2(-18f, 0f);
+                label.enableWordWrapping = false;
                 label.enableAutoSizing = true;
-                label.fontSizeMin = 30;
-                label.fontSizeMax = 44;
+                label.fontSizeMin = 24;
+                label.fontSizeMax = 42;
+                if (button.name == "replayButton") label.text = "Again";
                 label.alignment = TextAlignmentOptions.Center;
             }
         }
