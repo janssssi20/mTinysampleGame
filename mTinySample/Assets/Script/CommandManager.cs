@@ -438,6 +438,14 @@ public class CommandManager : MonoBehaviour
             return;
         }
 
+        if (!ProgramEdits.CanAddBlock(commandList, type))
+        {
+            Debug.LogWarning(
+                $"Cannot add {type}: press the start flag first."
+            );
+            return;
+        }
+
         if (type == CommandType.Emotion)
         {
             Debug.LogWarning(
@@ -468,6 +476,14 @@ public class CommandManager : MonoBehaviour
     {
         if (!CanEditProgram())
         {
+            return;
+        }
+
+        if (!ProgramEdits.CanAddBlock(commandList, CommandType.Emotion))
+        {
+            Debug.LogWarning(
+                "Cannot add an emotion: press the start flag first."
+            );
             return;
         }
 

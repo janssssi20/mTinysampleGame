@@ -9,6 +9,26 @@ public class ProgramEditsTests
     }
 
     [Test]
+    public void CanAddBlock_BeforeStartFlag_OnlyTheFlagIsAllowed()
+    {
+        List<Command> program = Program();
+
+        Assert.IsTrue(ProgramEdits.CanAddBlock(program, CommandType.StartFlag));
+        Assert.IsFalse(ProgramEdits.CanAddBlock(program, CommandType.Forward));
+        Assert.IsFalse(ProgramEdits.CanAddBlock(program, CommandType.Emotion));
+    }
+
+    [Test]
+    public void CanAddBlock_AfterStartFlag_BlocksAllowedButNotASecondFlag()
+    {
+        List<Command> program = Program(new Command(CommandType.StartFlag));
+
+        Assert.IsTrue(ProgramEdits.CanAddBlock(program, CommandType.Forward));
+        Assert.IsTrue(ProgramEdits.CanAddBlock(program, CommandType.Emotion));
+        Assert.IsFalse(ProgramEdits.CanAddBlock(program, CommandType.StartFlag));
+    }
+
+    [Test]
     public void Undo_EmptyProgram_DoesNothing()
     {
         List<Command> program = Program();
