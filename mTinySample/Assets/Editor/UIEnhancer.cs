@@ -85,10 +85,24 @@ public static class UIEnhancer
         sequenceViewport.anchorMin = new Vector2(0.5f, 0.5f);
         sequenceViewport.anchorMax = new Vector2(0.5f, 0.5f);
         sequenceViewport.pivot = new Vector2(0.5f, 0.5f);
-        sequenceViewport.anchoredPosition = Vector2.zero;
-        // The frame art keeps its aspect, drawing ~1345x311 inside its
-        // 1606-wide box; the viewport is that drawn area minus the border.
-        sequenceViewport.sizeDelta = new Vector2(1220f, 220f);
+
+        // The frame art keeps its aspect, so it draws smaller than its box
+        // (and differently per scene). Fit the viewport to the drawn frame,
+        // minus its rounded border.
+        Image frame = sequence.Cast<Transform>()
+            .Select(t => t.GetComponent<Image>())
+            .First(i => i != null && i.transform != sequenceViewport);
+        RectTransform frameRect = Rect(frame.transform);
+        Vector2 drawn = frameRect.rect.size;
+        if (frame.preserveAspect && frame.sprite != null)
+        {
+            float spriteAspect = frame.sprite.rect.width / frame.sprite.rect.height;
+            drawn = drawn.x / drawn.y > spriteAspect
+                ? new Vector2(drawn.y * spriteAspect, drawn.y)
+                : new Vector2(drawn.x, drawn.x / spriteAspect);
+        }
+        sequenceViewport.anchoredPosition = frameRect.anchoredPosition;
+        sequenceViewport.sizeDelta = new Vector2(drawn.x * 0.9f, drawn.y * 0.72f);
         sequenceScroll.viewport = sequenceViewport;
 
         // Icons line up from the left edge and the strip grows to fit them
