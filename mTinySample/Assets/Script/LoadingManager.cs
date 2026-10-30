@@ -27,8 +27,18 @@ public class LoadingManager : MonoBehaviour
         Instance = this;
     }
 
+    private bool isLoading = false;
+
     public void LoadScene(string sceneName)
     {
+        // Ignore repeated clicks while a scene is already loading
+        if (isLoading)
+        {
+            return;
+        }
+
+        isLoading = true;
+
         StartCoroutine(LoadSceneAsync(sceneName));
     }
 

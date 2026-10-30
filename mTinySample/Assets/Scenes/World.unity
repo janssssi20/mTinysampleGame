@@ -1089,7 +1089,6 @@ MonoBehaviour:
   finishTimeText: {fileID: 846866241}
   starPrefab: {fileID: 1745286292885290985, guid: 82766c09fb894c64784c226d84495e70, type: 3}
   starContainer: {fileID: 2139047748}
-  currentMultiplier: 1
   cursorTexture: {fileID: 0}
   cursorHotspot: {x: 25, y: 100}
   cursorMode: 1
@@ -1158,7 +1157,7 @@ MonoBehaviour:
   requireEmotion: 0
   requireFinish: 1
   missionCompletePanel: {fileID: 929408714}
-  missionFailedPanel: {fileID: 929408714}
+  missionFailedPanel: {fileID: 0}
 --- !u!114 &101628891
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3119,7 +3118,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1143105365532050393, guid: e99289913bab97244b110c50d2653349, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -57.084
+      value: -57.083984
       objectReference: {fileID: 0}
     - target: {fileID: 1143105365532050393, guid: e99289913bab97244b110c50d2653349, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -5673,8 +5672,8 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1358680179}
   m_HandleRect: {fileID: 1358680178}
   m_Direction: 2
-  m_Value: 1
-  m_Size: 0.28868914
+  m_Value: 1.0000004
+  m_Size: 0.27976397
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -7602,16 +7601,16 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 101628884}
-        m_TargetAssemblyTypeName: 
-        m_MethodName: 
-        m_Mode: 1
+      - m_Target: {fileID: 101628891}
+        m_TargetAssemblyTypeName: LoadingManager, Assembly-CSharp
+        m_MethodName: LoadScene
+        m_Mode: 5
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: 
           m_IntArgument: 0
           m_FloatArgument: 0
-          m_StringArgument: 
+          m_StringArgument: World
           m_BoolArgument: 0
         m_CallState: 2
 --- !u!114 &1342728316
@@ -8890,7 +8889,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -0.000020985, y: -1022.86505}
+  m_AnchoredPosition: {x: -0.000020985, y: -1022.8656}
   m_SizeDelta: {x: 127.11, y: 2876}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1571676659
@@ -10673,7 +10672,7 @@ BoxCollider2D:
   m_CallbackLayers:
     serializedVersion: 2
     m_Bits: 4294967295
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_UsedByEffector: 0
   m_UsedByComposite: 0
   m_Offset: {x: 0, y: 0}

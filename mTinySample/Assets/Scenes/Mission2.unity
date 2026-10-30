@@ -1135,7 +1135,7 @@ MonoBehaviour:
   requireEmotion: 0
   requireFinish: 1
   missionCompletePanel: {fileID: 929408714}
-  missionFailedPanel: {fileID: 929408714}
+  missionFailedPanel: {fileID: 0}
 --- !u!114 &101628891
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -1,4 +1,3 @@
-using System.Collections;
 using UnityEngine;
 
 public class GoalZone : MonoBehaviour
@@ -15,7 +14,7 @@ public class GoalZone : MonoBehaviour
     private void Start()
     {
         commandManager =
-            FindObjectOfType<CommandManager>();
+            FindFirstObjectByType<CommandManager>();
 
         if (commandManager == null)
         {
@@ -38,66 +37,81 @@ public class GoalZone : MonoBehaviour
             $"Tag: {other.tag}"
         );
 
-        // Make sure the goal can only be triggered once
+        // Make sure the goal can only be triggered once per run
         if (goalTriggered)
         {
             return;
         }
 
         // Check if the object is the Robot
-        if (other.CompareTag("Robot"))
+        if (!other.CompareTag("Robot"))
         {
-            goalTriggered = true;
+            return;
+        }
 
-            Debug.Log(
-                "YOU WIN!"
+        goalTriggered = true;
+
+        // -------------------------------------------------
+        // STOP THE ROBOT
+        // -------------------------------------------------
+        // Finish the current step, skip remaining commands.
+
+        RobotController robot =
+            other.GetComponentInParent<RobotController>();
+
+        if (robot != null)
+        {
+            robot.StopAtGoal();
+        }
+
+        // -------------------------------------------------
+        // MISSION MANAGER
+        // -------------------------------------------------
+        // A failed mission shows its own feedback and
+        // must not award stars.
+
+        if (MissionManager.Instance != null &&
+            !MissionManager.Instance.ReachFinish())
+        {
+            return;
+        }
+
+        Debug.Log(
+            "YOU WIN!"
+        );
+
+        // -------------------------------------------------
+        // COMMAND MANAGER
+        // -------------------------------------------------
+
+        if (commandManager != null)
+        {
+            // This will:
+            // 1. Stop the timer
+            // 2. Calculate the stars
+            // 3. Generate star prefabs
+            // 4. Display final time
+            // 5. Show the finish panel
+
+            commandManager.ShowFinishPanel();
+        }
+        else
+        {
+            Debug.LogError(
+                "GoalZone: CommandManager is null!"
             );
-
-            // -------------------------------------------------
-            // MISSION MANAGER
-            // -------------------------------------------------
-
-            if (MissionManager.Instance != null)
-            {
-                MissionManager.Instance.ReachFinish();
-            }
-
-            // -------------------------------------------------
-            // COMMAND MANAGER
-            // -------------------------------------------------
-
-            if (commandManager != null)
-            {
-                // This will:
-                // 1. Stop the timer
-                // 2. Calculate the stars
-                // 3. Generate star prefabs
-                // 4. Display final time
-                // 5. Show the finish panel
-
-                commandManager.ShowFinishPanel();
-            }
-            else
-            {
-                Debug.LogError(
-                    "GoalZone: CommandManager is null!"
-                );
-            }
         }
     }
 
 
     // =========================================================
-    // OPTIONAL DELAYED FINISH PANEL
+    // RESET GOAL
+    // =========================================================
+    // Called by Reset so the goal can trigger again.
     // =========================================================
 
-    public IEnumerator finishPanelShow()
+    public void ResetGoal()
     {
-        yield return new WaitForSeconds(1f);
-
-        if (commandManager != null)
-        {
-            commandManager.ShowFinishPanel();
-        }
+        goalTriggered = false;
     }
 }

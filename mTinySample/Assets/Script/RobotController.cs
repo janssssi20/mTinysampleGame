@@ -38,6 +38,10 @@ public class RobotController : MonoBehaviour
 
     private bool isExecuting = false;
 
+    // Set when the robot reaches the goal so the program
+    // stops after the current step finishes.
+    private bool stopRequested = false;
+
 
     // =========================================================
     // AWAKE
@@ -46,6 +50,12 @@ public class RobotController : MonoBehaviour
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
+
+        if (rb != null)
+        {
+            // Collisions must never spin the robot off the grid
+            rb.freezeRotation = true;
+        }
     }
 
 
@@ -103,8 +113,7 @@ public void RunProgram()
         return;
     }
 
-    if (commandManager.commandList == null ||
-        commandManager.commandList.Count == 0)
+    if (!commandManager.HasRunnableCommands())
     {
         Debug.LogWarning(
             "Cannot run program: Command list is empty!"
@@ -112,6 +121,17 @@ public void RunProgram()
 
         return;
     }
+
+    if (commandManager.IsGameFinished())
+    {
+        Debug.LogWarning(
+            "Cannot run program: Level is already finished. Press Reset."
+        );
+
+        return;
+    }
+
+    stopRequested = false;
 
     Debug.Log(
         $"Starting program with " +
@@ -140,12 +160,23 @@ public void RunProgram()
     {
         isExecuting = true;
 
+        commandManager.SetProgramRunning(true);
+
         Debug.Log(
             "========== PROGRAM STARTED =========="
         );
 
-        foreach (Command cmd in commandManager.commandList)
+        // Iterate over a copy so UI clicks during execution
+        // can never modify the list being executed.
+        Command[] program = commandManager.commandList.ToArray();
+
+        foreach (Command cmd in program)
         {
+            if (stopRequested)
+            {
+                break;
+            }
+
             if (cmd == null)
             {
                 Debug.LogWarning(
@@ -167,7 +198,7 @@ public void RunProgram()
             );
 
             // Execute command according to multiplier
-            for (int i = 0; i < repeatCount; i++)
+            for (int i = 0; i < repeatCount && !stopRequested; i++)
             {
                 Debug.Log(
                     $"Execution {i + 1}/{repeatCount}: " +
@@ -294,8 +325,58 @@ public void RunProgram()
             }
         }
 
+        if (stopRequested)
+        {
+            // Goal was reached; GoalZone handles the result
+            stopRequested = false;
+
+            FinishExecution();
+
+            yield break;
+        }
+
+        // =====================================================
+        // PROGRAM ENDED WITHOUT REACHING THE GOAL
+        // =====================================================
+
+        Debug.Log(
+            "Program finished without reaching the goal."
+        );
+
+        yield return ShowEmotion(EmotionType.Sad);
+
+        FinishExecution();
+
+        // Let the player edit the program or press Reset
+        commandManager.ShowSequenceUI();
+    }
+
+
+    // =========================================================
+    // FINISH EXECUTION
+    // =========================================================
+
+    private void FinishExecution()
+    {
         isExecuting = false;
 
+        if (commandManager != null)
+        {
+            commandManager.SetProgramRunning(false);
+        }
+    }
+
+
+    // =========================================================
+    // STOP AT GOAL
+    // =========================================================
+    // Called by GoalZone. The current step finishes, then the
+    // remaining commands are skipped.
+    // =========================================================
+
+    public void StopAtGoal()
+    {
+        stopRequested = true;
     }
 
 
@@ -527,14 +608,7 @@ public void RunProgram()
                 $"at {targetPos}"
             );
 
-            commandManager.emotionPanel.SetActive(true);
-             
-            commandManager.emotionAnimator.SetTrigger("Bumped");
-            yield return new WaitForSeconds(3f);
-
-            // Hide emotion panel
-            commandManager.emotionPanel.SetActive(false);
-
+            yield return PlayBumped();
 
             yield break;
         }
@@ -565,6 +639,10 @@ public void RunProgram()
 
         // Make sure robot reaches exact target
         rb.MovePosition(targetPos);
+
+        yield return new WaitForFixedUpdate();
+
+        ClearVelocity();
 
         Debug.Log(
             "Forward movement completed."
@@ -670,6 +748,8 @@ public void RunProgram()
                         "bumped detected!"
                     );
 
+                    yield return PlayBumped();
+
                     break;
 
                 case TileType.Construction:
@@ -677,6 +757,8 @@ public void RunProgram()
                     Debug.Log(
                         "construction detected!"
                     );
+
+                    yield return PlayBumped();
 
                     break;
             }
@@ -720,12 +802,17 @@ public void RunProgram()
         Quaternion startRot =
             transform.rotation;
 
+        // Snap to a multiple of 90 so small errors never accumulate
+        float targetZ =
+            Mathf.Round(
+                (startRot.eulerAngles.z + angle) / 90f
+            ) * 90f;
+
         Quaternion targetRot =
-            startRot *
             Quaternion.Euler(
                 0f,
                 0f,
-                angle
+                targetZ
             );
 
         float t = 0f;
@@ -762,11 +849,56 @@ public void RunProgram()
     {
         StopAllCoroutines();
 
-        isExecuting = false;
+        stopRequested = false;
+
+        FinishExecution();
+
+        ClearVelocity();
 
         Debug.Log(
             "Program stopped."
         );
+    }
+
+
+    // =========================================================
+    // RESET POSE
+    // =========================================================
+
+    public void ResetPose(
+        Vector3 position,
+        Quaternion rotation)
+    {
+        position.z = 0f;
+
+        transform.SetPositionAndRotation(
+            position,
+            rotation
+        );
+
+        if (rb != null)
+        {
+            rb.position = position;
+            rb.rotation = rotation.eulerAngles.z;
+        }
+
+        ClearVelocity();
+    }
+
+
+    // =========================================================
+    // CLEAR VELOCITY
+    // =========================================================
+
+    private void ClearVelocity()
+    {
+        if (rb == null)
+        {
+            return;
+        }
+
+        rb.velocity = Vector2.zero;
+        rb.angularVelocity = 0f;
     }
 
 
@@ -793,79 +925,6 @@ public void RunProgram()
             p.z = 0f;
 
             transform.position = p;
-        }
-    }
-
-    private IEnumerator HandleSpecialTile(
-        TileType tileType)
-    {
-        switch (tileType)
-        {
-            // =====================================================
-            // HOSPITAL
-            // =====================================================
-
-            case TileType.Hospital:
-
-                Debug.Log(
-                    "Robot reached Hospital!"
-                );
-
-                if (commandManager.emotionPanel != null &&
-                    commandManager.emotionAnimator != null)
-                {
-                    commandManager.emotionPanel.SetActive(true);
-
-                    commandManager.emotionAnimator.SetTrigger(
-                        "Emergency"
-                    );
-
-                    yield return new WaitForSeconds(3f);
-
-                    commandManager.emotionPanel.SetActive(false);
-                }
-
-                break;
-
-
-            // =====================================================
-            // SCHOOL
-            // =====================================================
-
-            case TileType.ChildrenCrossing:
-
-                Debug.Log(
-                    "Robot reached School!"
-                );
-
-                // Example:
-                // Play another animation here.
-
-                break;
-
-
-
-            // =====================================================
-            // POLICE STATION
-            // =====================================================
-
-            case TileType.PoliceStation:
-
-                Debug.Log(
-                    "Robot reached Police Station!"
-                );
-
-                break;
-
-
-            // =====================================================
-            // NONE
-            // =====================================================
-
-            case TileType.None:
-            default:
-
-                break;
         }
     }
 

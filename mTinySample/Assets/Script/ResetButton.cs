@@ -1,6 +1,5 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+
 public class ResetButton : MonoBehaviour
 {
     public RobotController robot;
@@ -12,21 +11,43 @@ public class ResetButton : MonoBehaviour
 
     private void Start()
     {
-        robot = FindObjectOfType<RobotController>();
-        
-        startPos = robot.transform.position;
-        startRot = robot.transform.rotation;
+        if (robot == null)
+            robot = FindFirstObjectByType<RobotController>();
 
+        if (commandManager == null)
+            commandManager = FindFirstObjectByType<CommandManager>();
+
+        if (uiManager == null)
+            uiManager = FindFirstObjectByType<SequenceUIManager>();
+
+        if (robot != null)
+        {
+            startPos = robot.transform.position;
+            startRot = robot.transform.rotation;
+        }
     }
 
     public void ResetGame()
     {
-        robot.StopProgram();
+        // CommandButtonManager owns the full reset (buttons, mission, goal)
+        CommandButtonManager buttonManager = FindFirstObjectByType<CommandButtonManager>();
 
-        commandManager.ClearCommands();
-        uiManager.ClearUI();
+        if (buttonManager != null)
+        {
+            buttonManager.ResetState();
+            return;
+        }
 
-        robot.transform.position = startPos;
-        robot.transform.rotation = startRot;
+        if (robot != null)
+        {
+            robot.StopProgram();
+            robot.ResetPose(startPos, startRot);
+        }
+
+        if (commandManager != null)
+            commandManager.ClearCommands();
+
+        if (uiManager != null)
+            uiManager.ClearUI();
     }
 }

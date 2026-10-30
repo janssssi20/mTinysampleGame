@@ -21,11 +21,28 @@ public class CommandButtonManager : MonoBehaviour
 
     private void Start()
     {
-        robot = FindObjectOfType<RobotController>();
-        commandManager = FindObjectOfType<CommandManager>();
+        robot = FindFirstObjectByType<RobotController>();
 
-        startPos = robot.transform.position;
-        startRot = robot.transform.rotation;
+        if (commandManager == null)
+        {
+            commandManager = FindFirstObjectByType<CommandManager>();
+        }
+
+        if (uiManager == null)
+        {
+            uiManager = FindFirstObjectByType<SequenceUIManager>();
+        }
+
+        if (robot == null)
+        {
+            Debug.LogError("CommandButtonManager: RobotController not found!");
+        }
+        else
+        {
+            startPos = robot.transform.position;
+            startRot = robot.transform.rotation;
+        }
+
         ResetState();
     }
 
@@ -34,45 +51,71 @@ public class CommandButtonManager : MonoBehaviour
         if (started)
             return;
 
+        if (CommandManager.Instance == null)
+        {
+            Debug.LogError("CommandButtonManager: CommandManager.Instance is null!");
+            return;
+        }
+
         started = true;
+
+        // Make sure the timer is running before any block is added
+        CommandManager.Instance.StartGame();
 
         CommandManager.Instance.AddCommand(CommandType.StartFlag);
 
-        foreach (Button btn in commandButtons)
-        {
-            btn.interactable = true;
-        }
+        SetCommandButtonsInteractable(true);
 
-        startButton.interactable = false;
+        if (startButton != null)
+            startButton.interactable = false;
     }
 
     public void ResetState()
     {
         started = false;
 
-        foreach (Button btn in commandButtons)
+        SetCommandButtonsInteractable(false);
+
+        if (startButton != null)
+            startButton.interactable = true;
+
+        if (robot != null)
         {
-            btn.interactable = false;
+            robot.StopProgram();
+            robot.ResetPose(startPos, startRot);
         }
 
-        startButton.interactable = true;
-        
-        //  commandManager.emotionAnimator.enabled = false;
+        if (commandManager != null)
+        {
+            if (commandManager.emotionPanel != null)
+                commandManager.emotionPanel.SetActive(false);
 
-        commandManager.emotionPanel.SetActive(false);
-        commandManager.ShowSequenceUI();
+            commandManager.ResetAfterFinish();
+            commandManager.ShowSequenceUI();
+            commandManager.ClearCommands();
+        }
 
-        robot.StopProgram();
+        if (uiManager != null)
+            uiManager.ClearUI();
 
-        commandManager.ClearCommands();
-        uiManager.ClearUI();
+        if (MissionManager.Instance != null)
+            MissionManager.Instance.StartMission();
 
-        robot.transform.position = startPos;
+        foreach (GoalZone goal in FindObjectsByType<GoalZone>(FindObjectsSortMode.None))
+        {
+            goal.ResetGoal();
+        }
+    }
 
-        Vector3 p = robot.transform.position;
-        p.z = 0;
-        robot.transform.position = p;
+    private void SetCommandButtonsInteractable(bool interactable)
+    {
+        if (commandButtons == null)
+            return;
 
-        robot.transform.rotation = startRot;
+        foreach (Button btn in commandButtons)
+        {
+            if (btn != null)
+                btn.interactable = interactable;
+        }
     }
 }

@@ -37,6 +37,14 @@ public class MissionManager : MonoBehaviour
         Instance = this;
     }
 
+    private void Start()
+    {
+        StartMission();
+    }
+
+    /// <summary>
+    /// Resets mission progress. Called on scene start and by Reset.
+    /// </summary>
     public void StartMission()
     {
         movementUsed = false;
@@ -104,45 +112,85 @@ public class MissionManager : MonoBehaviour
         );
     }
 
-    public void ReachFinish()
+    /// <summary>
+    /// Called by GoalZone. Returns true when every mission requirement is met.
+    /// </summary>
+    public bool ReachFinish()
     {
         finishReached = true;
 
         Debug.Log("Finish line reached!");
 
-        CheckMissionComplete();
-    }
-
-    private void CheckMissionComplete()
-    {
         if (missionCompleted)
         {
-            return;
+            return true;
         }
 
-        if (requireMovement && !movementUsed)
-        {
-            return;
-        }
+        // Re-check the program so the result never depends on stale flags
+        CheckProgram();
 
-        if (requireMultiplier && !multiplierUsed)
-        {
-            return;
-        }
+        string missingRequirement = GetMissingRequirement();
 
-        if (requireEmotion && !emotionUsed)
+        if (missingRequirement != null)
         {
-            return;
-        }
-
-        if (requireFinish && !finishReached)
-        {
-            return;
+            FailMission(missingRequirement);
+            return false;
         }
 
         missionCompleted = true;
 
         CompleteMission();
+
+        return true;
+    }
+
+    private string GetMissingRequirement()
+    {
+        if (requireMovement && !movementUsed)
+        {
+            return "Use a movement block.";
+        }
+
+        if (requireMultiplier && !multiplierUsed)
+        {
+            return "Use a multiplier block.";
+        }
+
+        if (requireEmotion && !emotionUsed)
+        {
+            return "Use an emotion block.";
+        }
+
+        if (requireFinish && !finishReached)
+        {
+            return "Reach the finish.";
+        }
+
+        return null;
+    }
+
+    private void FailMission(string reason)
+    {
+        Debug.Log($"MISSION FAILED: {reason}");
+
+        if (missionFailedPanel != null)
+        {
+            missionFailedPanel.SetActive(true);
+            return;
+        }
+
+        // No failed panel: robot looks sad and the program can be edited again
+        RobotController robot = FindFirstObjectByType<RobotController>();
+
+        if (robot != null)
+        {
+            robot.StartCoroutine(robot.ShowEmotion(EmotionType.Sad));
+        }
+
+        if (CommandManager.Instance != null)
+        {
+            CommandManager.Instance.ShowSequenceUI();
+        }
     }
 
     private void CompleteMission()
