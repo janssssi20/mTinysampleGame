@@ -275,7 +275,7 @@ public static class UIEnhancer
             row.anchoredPosition = new Vector2(0f, 14f);
             HorizontalLayoutGroup rowLayout = buttons.GetComponent<HorizontalLayoutGroup>();
             rowLayout.childAlignment = TextAnchor.MiddleCenter;
-            rowLayout.spacing = 30f;
+            rowLayout.spacing = 24f;
             rowLayout.childControlWidth = false;
             rowLayout.childControlHeight = false;
             rowLayout.childForceExpandWidth = false;
@@ -292,7 +292,7 @@ public static class UIEnhancer
 
                 // Match the pill art's proportions so icon and label sit on it
                 RectTransform rect = Rect(button.transform);
-                rect.sizeDelta = new Vector2(300f, 136f);
+                rect.sizeDelta = new Vector2(272f, 128f);
                 Image pill = button.GetComponent<Image>();
                 pill.preserveAspect = false;
 
