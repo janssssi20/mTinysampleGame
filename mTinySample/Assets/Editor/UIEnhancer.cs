@@ -71,7 +71,45 @@ public static class UIEnhancer
 
         Transform sequenceScrollbar = Find(scene, "Scrollbar", sequence);
         if (sequenceScrollbar != null) sequenceScrollbar.gameObject.SetActive(false);
-        sequence.GetComponent<ScrollRect>().horizontalScrollbar = null;
+
+        ScrollRect sequenceScroll = sequence.GetComponent<ScrollRect>();
+        sequenceScroll.horizontalScrollbar = null;
+        sequenceScroll.horizontal = true;
+        sequenceScroll.vertical = false;
+        sequenceScroll.movementType = ScrollRect.MovementType.Clamped;
+
+        // The viewport was a zero-size point at the bar's corner, so the
+        // icon strip only lined up with the bar's original anchoring.
+        // Give it a real area inside the bar's frame instead.
+        RectTransform sequenceViewport = Rect(Find(scene, "Viewport", sequence));
+        sequenceViewport.anchorMin = new Vector2(0.5f, 0.5f);
+        sequenceViewport.anchorMax = new Vector2(0.5f, 0.5f);
+        sequenceViewport.pivot = new Vector2(0.5f, 0.5f);
+        sequenceViewport.anchoredPosition = Vector2.zero;
+        sequenceViewport.sizeDelta = new Vector2(1480f, 200f);
+        sequenceScroll.viewport = sequenceViewport;
+
+        // Icons line up from the left edge and the strip grows to fit them
+        RectTransform sequenceContent = Rect(Find(scene, "Content", sequenceViewport));
+        sequenceContent.anchorMin = new Vector2(0f, 0f);
+        sequenceContent.anchorMax = new Vector2(0f, 1f);
+        sequenceContent.pivot = new Vector2(0f, 0.5f);
+        sequenceContent.anchoredPosition = Vector2.zero;
+        sequenceContent.sizeDelta = new Vector2(0f, 0f);
+        sequenceScroll.content = sequenceContent;
+
+        HorizontalLayoutGroup strip = sequenceContent.GetComponent<HorizontalLayoutGroup>();
+        strip.padding = new RectOffset(20, 20, 0, 0);
+        strip.childAlignment = TextAnchor.MiddleLeft;
+        strip.childControlWidth = false;
+        strip.childControlHeight = false;
+        strip.childForceExpandWidth = false;
+        strip.childForceExpandHeight = false;
+
+        ContentSizeFitter stripFitter = sequenceContent.GetComponent<ContentSizeFitter>() ??
+                                        sequenceContent.gameObject.AddComponent<ContentSizeFitter>();
+        stripFitter.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
+        stripFitter.verticalFit = ContentSizeFitter.FitMode.Unconstrained;
 
         RectTransform reset = Rect(Find(scene, "resetButton"));
         reset.SetParent(header, false);
