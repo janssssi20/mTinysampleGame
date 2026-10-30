@@ -164,12 +164,14 @@ public class CommandManager : MonoBehaviour
         new List<GameObject>();
 
     // =========================================================
-    // CURRENT MULTIPLIER
+    // PROGRAM STATE
     // =========================================================
 
-    [Header("Current Multiplier")]
-    [Range(1, 5)]
-    public int currentMultiplier = 1;
+    // True while the robot is executing; blocks program edits
+    private bool programRunning = false;
+
+    // True when the last block in the sequence UI is a multiplier
+    private bool lastBlockIsMultiplier = false;
 
 
     // =========================================================
@@ -485,6 +487,11 @@ public class CommandManager : MonoBehaviour
 
     public void AddCommand(CommandType type)
     {
+        if (!CanEditProgram())
+        {
+            return;
+        }
+
         if (type == CommandType.Emotion)
         {
             Debug.LogWarning(
@@ -501,6 +508,8 @@ public class CommandManager : MonoBehaviour
         // Add command visual block
         AddCommandVisual(type);
 
+        lastBlockIsMultiplier = false;
+
         Debug.Log($"Added command: {type} x1");
     }
 
@@ -511,6 +520,11 @@ public class CommandManager : MonoBehaviour
 
     public void AddEmotion(EmotionType emotionType)
     {
+        if (!CanEditProgram())
+        {
+            return;
+        }
+
         // Store emotion command with a default repeat count of 1
         Command newCommand = new Command(
             CommandType.Emotion,
@@ -523,6 +537,8 @@ public class CommandManager : MonoBehaviour
         // Add emotion visual block
         AddEmotionVisual(emotionType);
 
+        lastBlockIsMultiplier = false;
+
         Debug.Log($"Added emotion: {emotionType} x1");
     }
 
@@ -533,6 +549,11 @@ public class CommandManager : MonoBehaviour
 
     public void SetMultiplier(int multiplier)
     {
+        if (!CanEditProgram())
+        {
+            return;
+        }
+
         // Make sure there is a command to modify
         if (commandList.Count == 0)
         {
@@ -561,11 +582,22 @@ public class CommandManager : MonoBehaviour
         // Display the multiplier visual block in the UI sequence
         if (uiManager != null)
         {
+            // Pressing another multiplier replaces the previous
+            // multiplier block instead of stacking a second one
+            if (lastBlockIsMultiplier)
+            {
+                uiManager.RemoveLastBlock();
+
+                lastBlockIsMultiplier = false;
+            }
+
             Sprite icon = GetMultiplierIcon(clampedMultiplier);
 
             if (icon != null)
             {
                 uiManager.AddVisualBlock(icon);
+
+                lastBlockIsMultiplier = true;
             }
         }
 
@@ -734,7 +766,7 @@ public class CommandManager : MonoBehaviour
     {
         commandList.Clear();
 
-        currentMultiplier = 1;
+        lastBlockIsMultiplier = false;
 
         if (uiManager != null)
         {
@@ -768,6 +800,72 @@ public class CommandManager : MonoBehaviour
 
 
     // =========================================================
+    // HAS RUNNABLE COMMANDS
+    // =========================================================
+    // Flags alone do not make a program.
+    // =========================================================
+
+    public bool HasRunnableCommands()
+    {
+        foreach (Command command in commandList)
+        {
+            if (command != null &&
+                command.commandType != CommandType.StartFlag &&
+                command.commandType != CommandType.RunFlag)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+
+    // =========================================================
+    // PROGRAM RUNNING STATE
+    // =========================================================
+
+    public void SetProgramRunning(bool running)
+    {
+        programRunning = running;
+    }
+
+
+    public bool IsProgramRunning()
+    {
+        return programRunning;
+    }
+
+
+    // =========================================================
+    // CAN EDIT PROGRAM
+    // =========================================================
+
+    private bool CanEditProgram()
+    {
+        if (!gameStarted || gameFinished)
+        {
+            Debug.LogWarning(
+                "Cannot edit program: press Start first."
+            );
+
+            return false;
+        }
+
+        if (programRunning)
+        {
+            Debug.LogWarning(
+                "Cannot edit program while the robot is running."
+            );
+
+            return false;
+        }
+
+        return true;
+    }
+
+
+    // =========================================================
     // EMOTION PANEL
     // =========================================================
 
@@ -792,13 +890,16 @@ public class CommandManager : MonoBehaviour
     // =========================================================
     // FINISH GAME
     // =========================================================
+    // Returns the stars awarded, or 0 if the level was already
+    // finished.
+    // =========================================================
 
-    public void ShowFinishPanel()
+    public int ShowFinishPanel()
     {
         // Prevent duplicate finish calls
         if (gameFinished)
         {
-            return;
+            return 0;
         }
 
         // Stop timer
@@ -834,6 +935,8 @@ public class CommandManager : MonoBehaviour
             $"Time: {FormatTime(elapsedTime)} | " +
             $"Stars: {stars}"
         );
+
+        return stars;
     }
 
 
@@ -982,6 +1085,34 @@ public class CommandManager : MonoBehaviour
         {
             finishPanel.SetActive(false);
         }
+    }
+
+
+    // =========================================================
+    // RESET AFTER FINISH
+    // =========================================================
+    // Called by Reset. A run in progress keeps its timer, but a
+    // finished level is cleared so it can be played again.
+    // =========================================================
+
+    public void ResetAfterFinish()
+    {
+        if (!gameFinished)
+        {
+            return;
+        }
+
+        elapsedTime = 0f;
+
+        gameStarted = false;
+
+        gameFinished = false;
+
+        ClearGeneratedStars();
+
+        HideFinishPanel();
+
+        UpdateTimerUI();
     }
 
 
