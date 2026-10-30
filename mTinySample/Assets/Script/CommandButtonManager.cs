@@ -107,6 +107,25 @@ public class CommandButtonManager : MonoBehaviour
         }
     }
 
+    // Puts the robot back on the start tile and re-arms the goal, but
+    // keeps the program so the child can fix it and run again.
+    public void ReturnRobotToStart()
+    {
+        if (robot != null)
+        {
+            robot.StopProgram();
+            robot.ResetPose(startPos, startRot);
+        }
+
+        if (MissionManager.Instance != null)
+            MissionManager.Instance.StartMission();
+
+        foreach (GoalZone goal in FindObjectsByType<GoalZone>(FindObjectsSortMode.None))
+        {
+            goal.ResetGoal();
+        }
+    }
+
     private void SetCommandButtonsInteractable(bool interactable)
     {
         if (commandButtons == null)

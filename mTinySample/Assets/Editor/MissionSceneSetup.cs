@@ -105,6 +105,29 @@ public static class MissionSceneSetup
             if (cityTiles != mission.cityTiles.Count)
                 problems.Add($"{cityTiles} city tiles, expected {mission.cityTiles.Count}");
 
+            foreach (Transform tile in builder.boardParent)
+            {
+                // Tiles must cover exactly one grid cell in world space
+                Vector2 colliderSize = tile.GetComponent<Collider2D>().bounds.size;
+                Vector2 spriteSize = tile.GetComponent<SpriteRenderer>().bounds.size;
+
+                if (colliderSize.x > builder.cellSize * 1.05f || colliderSize.x < builder.cellSize * 0.3f)
+                    problems.Add($"{tile.name} collider is {colliderSize.x:F2} wide, cell is {builder.cellSize}");
+
+                if (spriteSize.x > builder.cellSize * 1.2f || spriteSize.x < builder.cellSize * 0.5f)
+                    problems.Add($"{tile.name} sprite is {spriteSize.x:F2} wide, cell is {builder.cellSize}");
+
+                // RobotController reads the first SpecialTile on the tile
+                SpecialTile special = tile.GetComponent<SpecialTile>();
+                SpecialTile[] specials = tile.GetComponents<SpecialTile>();
+
+                if (specials.Length > 1)
+                    problems.Add($"{tile.name} has {specials.Length} SpecialTile components");
+
+                if (special != null && special.tileType == TileType.None && specials.Any(s => s.tileType != TileType.None))
+                    problems.Add($"{tile.name} first SpecialTile is None");
+            }
+
             if (problems.Count == 0)
             {
                 Debug.Log($"[mTiny] OK {mission.id}");
@@ -265,6 +288,21 @@ public static class MissionSceneSetup
         GameObject copy = Object.Instantiate(source);
         copy.name = prefabName;
         copy.transform.position = Vector3.zero;
+
+        // Source tiles were scaled by their 'platforms' parent; bake that in
+        // so a tile is one grid cell wide under the unscaled Board.
+        copy.transform.localScale = source.transform.lossyScale;
+
+        // RobotController reads only the first SpecialTile; drop stray None ones
+        SpecialTile[] specials = copy.GetComponents<SpecialTile>();
+
+        if (specials.Any(s => s.tileType != TileType.None))
+        {
+            foreach (SpecialTile special in specials.Where(s => s.tileType == TileType.None))
+            {
+                Object.DestroyImmediate(special);
+            }
+        }
 
         PrefabUtility.SaveAsPrefabAsset(copy, $"{TileFolder}/{prefabName}.prefab");
         Object.DestroyImmediate(copy);

@@ -194,12 +194,8 @@ public class CommandManager : MonoBehaviour
 
     private void Awake()
     {
-        // Singleton protection
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
-            return;
-        }
+        // Scene-scoped: the newest scene's manager takes over. Never destroy
+        // the GameObject here; it carries other managers too.
 
         Instance = this;
     }
