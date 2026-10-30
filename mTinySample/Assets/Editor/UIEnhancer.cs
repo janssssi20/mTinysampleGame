@@ -114,8 +114,9 @@ public static class UIEnhancer
         palette.anchorMin = new Vector2(1f, 0f);
         palette.anchorMax = new Vector2(1f, 1f);
         palette.pivot = new Vector2(1f, 0.5f);
-        palette.sizeDelta = new Vector2(310f, -228f);
-        palette.anchoredPosition = new Vector2(-16f, -98f);
+        // Tall enough for the flag plus all 14 blocks without scrolling
+        palette.sizeDelta = new Vector2(310f, -212f);
+        palette.anchoredPosition = new Vector2(-16f, -90f);
 
         // Soft rounded tray behind the blocks (the old sidebar art can't stretch)
         RectTransform paletteBg = Rect(Find(scene, "bg", palette));
@@ -147,9 +148,9 @@ public static class UIEnhancer
         RectTransform content = Rect(Find(scene, "Content", palette));
         Object.DestroyImmediate(content.GetComponent<VerticalLayoutGroup>());
         GridLayoutGroup grid = content.GetComponent<GridLayoutGroup>() ?? content.gameObject.AddComponent<GridLayoutGroup>();
-        grid.cellSize = new Vector2(124f, 104f);
-        grid.spacing = new Vector2(14f, 10f);
-        grid.padding = new RectOffset(0, 0, 14, 14);
+        grid.cellSize = new Vector2(122f, 94f);
+        grid.spacing = new Vector2(14f, 8f);
+        grid.padding = new RectOffset(0, 0, 10, 10);
         grid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
         grid.constraintCount = 2;
         grid.childAlignment = TextAnchor.UpperCenter;
@@ -164,9 +165,12 @@ public static class UIEnhancer
         fitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
         fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 
-        // Group blocks: moves, then multipliers, then feelings
+        // The start flag comes first: the player presses it to begin the
+        // sequence, which unlocks the other blocks. Then moves,
+        // multipliers and feelings.
         string[] order =
         {
+            "startFlag",
             "forward", "left", "right",
             "2x multiplier", "3x multiplier", "4x multiplier", "5x multiplier",
             "happy", "sad", "angry", "surprised", "dizzy", "sleepy", "playful"
@@ -181,14 +185,21 @@ public static class UIEnhancer
             if (blockImage != null) blockImage.preserveAspect = true;
         }
 
-        // The game places the start flag; children never need to find it
+        // Start flag pulses until pressed (CommandButtonManager switches it off)
         Transform startFlag = Find(scene, "startFlag", content);
-        if (startFlag != null) startFlag.gameObject.SetActive(false);
+        if (startFlag != null)
+        {
+            startFlag.gameObject.SetActive(true);
+            if (startFlag.GetComponent<PulseScale>() == null) startFlag.gameObject.AddComponent<PulseScale>();
+            TouchButtonFeedback squish = startFlag.GetComponent<TouchButtonFeedback>();
+            if (squish != null) Object.DestroyImmediate(squish);
+        }
 
         // ---------------- INSTRUCTION CARD ----------------
+        // Start only begins the mission; the player still presses the flag
         Button startGame = Find(scene, "startGame").GetComponent<Button>();
         ClearListeners(startGame.onClick);
-        UnityEventTools.AddPersistentListener(startGame.onClick, buttonManager.OnStartPressed);
+        UnityEventTools.AddPersistentListener(startGame.onClick, commands.StartGame);
 
         if (isMission)
         {

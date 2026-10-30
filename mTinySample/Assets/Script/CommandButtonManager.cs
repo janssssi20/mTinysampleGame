@@ -68,6 +68,8 @@ public class CommandButtonManager : MonoBehaviour
 
         if (startButton != null)
             startButton.interactable = false;
+
+        SetStartFlagPulse(false);
     }
 
     public void ResetState()
@@ -106,15 +108,20 @@ public class CommandButtonManager : MonoBehaviour
             goal.ResetGoal();
         }
 
-        // The start flag is placed for the child: mid-level, straight away;
-        // after a finished level, once they press Start on the mission card.
-        if (CommandManager.Instance != null)
-        {
-            if (CommandManager.Instance.IsGameStarted())
-                OnStartPressed();
-            else
-                CommandManager.Instance.ShowInstructionPanel();
-        }
+        SetStartFlagPulse(true);
+    }
+
+    // The start flag pulses while it is the block the player must press
+    // first; it stops once the sequence has started.
+    private void SetStartFlagPulse(bool pulsing)
+    {
+        if (startButton == null)
+            return;
+
+        PulseScale pulse = startButton.GetComponent<PulseScale>();
+
+        if (pulse != null)
+            pulse.enabled = pulsing;
     }
 
     // Puts the robot back on the start tile and re-arms the goal, but
