@@ -218,7 +218,7 @@ MonoBehaviour:
   - id: H2
     stage: 2
     title: Police help
-    instruction: Say hello to the police, then turn left!
+    instruction: Turn left and say hello to the police!
     requireMovement: 1
     requireMultiplier: 1
     requireEmotion: 1
@@ -230,7 +230,7 @@ MonoBehaviour:
     - {x: 1, y: 2}
     goal: {x: 0, y: 2}
     cityTiles:
-    - cell: {x: 2, y: 1}
+    - cell: {x: 1, y: 2}
       kind: 2
     intendedSolution: Surprise F 2x L F 2x
   - id: H3
@@ -249,7 +249,7 @@ MonoBehaviour:
     - {x: 2, y: 2}
     goal: {x: 3, y: 2}
     cityTiles:
-    - cell: {x: 0, y: 1}
+    - cell: {x: 1, y: 2}
       kind: 0
     intendedSolution: Happy F 2x R F 3x
   - id: H4
@@ -269,7 +269,7 @@ MonoBehaviour:
     - {x: 2, y: 2}
     goal: {x: 2, y: 3}
     cityTiles:
-    - cell: {x: 5, y: 1}
+    - cell: {x: 4, y: 1}
       kind: 1
     intendedSolution: Surprise F L F 3x R F 2x
   - id: H5
@@ -291,7 +291,7 @@ MonoBehaviour:
     - {x: 4, y: 3}
     goal: {x: 5, y: 3}
     cityTiles:
-    - cell: {x: 0, y: 2}
+    - cell: {x: 1, y: 3}
       kind: 2
     - cell: {x: 3, y: 3}
       kind: 0

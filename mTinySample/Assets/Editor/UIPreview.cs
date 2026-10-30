@@ -66,6 +66,25 @@ public static class UIPreview
         Debug.Log("[mTiny] Previews written to " + Path.GetFullPath(OutDir));
     }
 
+    [MenuItem("mTiny/Preview/Capture Mission Boards")]
+    public static void CaptureBoards()
+    {
+        Directory.CreateDirectory(OutDir);
+
+        EditorSceneManager.OpenScene("Assets/Scenes/Mission.unity", OpenSceneMode.Single);
+        MissionBoardBuilder builder = UnityEngine.Object.FindFirstObjectByType<MissionBoardBuilder>(FindObjectsInactive.Include);
+        CommandManager commands = UnityEngine.Object.FindFirstObjectByType<CommandManager>(FindObjectsInactive.Include);
+        commands.instructionPanel.SetActive(false);
+
+        for (int i = 0; i < builder.catalog.Count; i++)
+        {
+            builder.Build(i);
+            Capture("board_" + builder.Current.id);
+        }
+
+        Debug.Log("[mTiny] Board previews written to " + Path.GetFullPath(OutDir));
+    }
+
     private static void Capture(string name)
     {
         Camera camera = Camera.main;

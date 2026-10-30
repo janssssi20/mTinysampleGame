@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using TMPro;
 using UnityEditor;
@@ -70,6 +71,87 @@ public static class MissionSceneSetup
         };
 
         Debug.Log("[mTiny] Mission scene built and Build Settings updated.");
+    }
+
+    // City puzzle pieces (Assets/Image/Tilemaps1) by which sides their road
+    // reaches; all city pieces share one edge profile, so they interlock.
+    private const string CityPiecePath = "Assets/Image/Tilemaps1/Layer {0}.png";
+
+    [MenuItem("mTiny/Setup/Create City Road Tiles")]
+    public static void CreateCityRoadTiles()
+    {
+        if (!AssetDatabase.IsValidFolder(TileFolder + "/City"))
+        {
+            AssetDatabase.CreateFolder(TileFolder, "City");
+        }
+
+        // Template with the city set's scale and trigger collider
+        GameObject template = Object.Instantiate(LoadTile("CrossingTile"));
+
+        SaveCityTile(template, "City/RoadEastWest", 5, TileType.None, false);
+        SaveCityTile(template, "City/RoadNorthSouth", 12, TileType.None, false);
+        SaveCityTile(template, "City/RoadNorthEast", 21, TileType.None, false);
+        SaveCityTile(template, "City/RoadEastSouth", 1, TileType.None, false);
+        SaveCityTile(template, "City/RoadSouthWest", 10, TileType.None, false);
+        SaveCityTile(template, "City/RoadNorthWest", 18, TileType.None, false);
+        SaveCityTile(template, "City/RoadJunction", 15, TileType.None, false);
+
+        // Roundabout with a green target circle: the city goal
+        SaveCityTile(template, "City/GoalCity", 15, TileType.None, true);
+
+        // Special tiles use art whose road runs east-west through the middle
+        SaveCityTile(template, "HospitalTile", 3, TileType.Hospital, false);
+        SaveCityTile(template, "PoliceTile", 17, TileType.PoliceStation, false);
+        SaveCityTile(template, "CrossingTile", 4, TileType.ChildrenCrossing, false);
+
+        Object.DestroyImmediate(template);
+
+        Scene scene = EditorSceneManager.OpenScene(MissionScenePath, OpenSceneMode.Single);
+        MissionBoardBuilder builder = Object.FindFirstObjectByType<MissionBoardBuilder>(FindObjectsInactive.Include);
+
+        builder.cityRoadEastWest = LoadTile("City/RoadEastWest");
+        builder.cityRoadNorthSouth = LoadTile("City/RoadNorthSouth");
+        builder.cityRoadNorthEast = LoadTile("City/RoadNorthEast");
+        builder.cityRoadEastSouth = LoadTile("City/RoadEastSouth");
+        builder.cityRoadSouthWest = LoadTile("City/RoadSouthWest");
+        builder.cityRoadNorthWest = LoadTile("City/RoadNorthWest");
+        builder.cityRoadJunction = LoadTile("City/RoadJunction");
+        builder.cityGoalTilePrefab = LoadTile("City/GoalCity");
+        builder.hospitalTilePrefab = LoadTile("HospitalTile");
+        builder.policeTilePrefab = LoadTile("PoliceTile");
+        builder.crossingTilePrefab = LoadTile("CrossingTile");
+
+        EditorUtility.SetDirty(builder);
+        EditorSceneManager.MarkSceneDirty(scene);
+        EditorSceneManager.SaveScene(scene);
+
+        Debug.Log("[mTiny] City road tiles created and wired.");
+    }
+
+    private static void SaveCityTile(GameObject template, string name, int piece, TileType type, bool goal)
+    {
+        GameObject copy = Object.Instantiate(template);
+        copy.name = Path.GetFileName(name);
+
+        copy.GetComponent<SpriteRenderer>().sprite = MainMenuSetup.LoadSprite(string.Format(CityPiecePath, piece));
+
+        foreach (SpecialTile special in copy.GetComponents<SpecialTile>())
+        {
+            Object.DestroyImmediate(special);
+        }
+
+        if (type != TileType.None)
+        {
+            copy.AddComponent<SpecialTile>().tileType = type;
+        }
+
+        if (goal && copy.GetComponent<GoalZone>() == null)
+        {
+            copy.AddComponent<GoalZone>();
+        }
+
+        PrefabUtility.SaveAsPrefabAsset(copy, $"{TileFolder}/{name}.prefab");
+        Object.DestroyImmediate(copy);
     }
 
     [MenuItem("mTiny/Setup/Validate Mission Boards")]

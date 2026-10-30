@@ -119,33 +119,34 @@ public static class MissionCatalogSeeder
                 C(1, 0), Cells(1, 1, 2, 1), C(2, 2),
                 "Happy F R F L F"),
 
+            // City tiles sit on east-west stretches: their road art runs that way
             Mission("H2", MissionStage.Hard, "Police help",
-                "Say hello to the police, then turn left!",
+                "Turn left and say hello to the police!",
                 true, true, All,
                 C(2, 0), Cells(2, 1, 2, 2, 1, 2), C(0, 2),
                 "Surprise F 2x L F 2x",
-                City(2, 1, CityTileKind.PoliceStation)),
+                City(1, 2, CityTileKind.PoliceStation)),
 
             Mission("H3", MissionStage.Hard, "Hospital visit",
                 "Pass the hospital and reach the flag!",
                 true, true, All,
                 C(0, 0), Cells(0, 1, 0, 2, 1, 2, 2, 2), C(3, 2),
                 "Happy F 2x R F 3x",
-                City(0, 1, CityTileKind.Hospital)),
+                City(1, 2, CityTileKind.Hospital)),
 
             Mission("H4", MissionStage.Hard, "School crossing",
                 "Watch out for the children crossing!",
                 true, true, All,
                 C(5, 0), Cells(5, 1, 4, 1, 3, 1, 2, 1, 2, 2), C(2, 3),
                 "Surprise F L F 3x R F 2x",
-                City(5, 1, CityTileKind.ChildrenCrossing)),
+                City(4, 1, CityTileKind.ChildrenCrossing)),
 
             Mission("H5", MissionStage.Hard, "Big city",
                 "A big trip across the city. You can do it!",
                 true, true, All,
                 C(0, 0), Cells(0, 1, 0, 2, 0, 3, 1, 3, 2, 3, 3, 3, 4, 3), C(5, 3),
                 "Happy F 3x R Playful F 5x",
-                City(0, 2, CityTileKind.PoliceStation),
+                City(1, 3, CityTileKind.PoliceStation),
                 City(3, 3, CityTileKind.Hospital)),
         };
     }

@@ -27,6 +27,24 @@ public class MissionBoardBuilder : MonoBehaviour
     public GameObject policeTilePrefab;
 
     // =========================================================
+    // CITY ROAD TILES
+    // =========================================================
+    // Missions with city tiles are built entirely from the city
+    // puzzle set, so every piece interlocks and the road follows
+    // the route. (Park and city pieces differ in size and knobs.)
+    // =========================================================
+
+    [Header("City Road Tiles")]
+    public GameObject cityRoadEastWest;
+    public GameObject cityRoadNorthSouth;
+    public GameObject cityRoadNorthEast;
+    public GameObject cityRoadEastSouth;
+    public GameObject cityRoadSouthWest;
+    public GameObject cityRoadNorthWest;
+    public GameObject cityRoadJunction;
+    public GameObject cityGoalTilePrefab;
+
+    // =========================================================
     // BOARD LAYOUT
     // =========================================================
 
@@ -100,14 +118,17 @@ public class MissionBoardBuilder : MonoBehaviour
 
         ClearBoard();
 
-        Transform startTile = SpawnTile(startTilePrefab, Current.start, "Start");
+        bool city = IsCityBoard;
+
+        Transform startTile = SpawnTile(
+            city ? RoadFor(Current.start) : startTilePrefab, Current.start, "Start");
 
         foreach (Vector2Int cell in Current.path)
         {
-            SpawnTile(GetPathPrefab(cell), cell, "Path " + cell);
+            SpawnTile(GetPathPrefab(cell, city), cell, "Path " + cell);
         }
 
-        SpawnTile(goalTilePrefab, Current.goal, "Goal");
+        SpawnTile(city ? cityGoalTilePrefab : goalTilePrefab, Current.goal, "Goal");
 
         if (gameManager != null)
         {
@@ -162,7 +183,23 @@ public class MissionBoardBuilder : MonoBehaviour
     // HELPERS
     // =========================================================
 
-    private GameObject GetPathPrefab(Vector2Int cell)
+    public bool IsCityBoard => Current != null && Current.cityTiles.Count > 0;
+
+    private GameObject RoadFor(Vector2Int cell)
+    {
+        switch (MissionRoute.ShapeFor(MissionRoute.Openings(Current, cell)))
+        {
+            case RoadShape.EastWest: return cityRoadEastWest;
+            case RoadShape.NorthSouth: return cityRoadNorthSouth;
+            case RoadShape.NorthEast: return cityRoadNorthEast;
+            case RoadShape.EastSouth: return cityRoadEastSouth;
+            case RoadShape.SouthWest: return cityRoadSouthWest;
+            case RoadShape.NorthWest: return cityRoadNorthWest;
+            default: return cityRoadJunction;
+        }
+    }
+
+    private GameObject GetPathPrefab(Vector2Int cell, bool city)
     {
         foreach (CityTilePlacement tile in Current.cityTiles)
         {
@@ -184,7 +221,7 @@ public class MissionBoardBuilder : MonoBehaviour
             }
         }
 
-        return pathTilePrefab;
+        return city ? RoadFor(cell) : pathTilePrefab;
     }
 
     private Transform SpawnTile(GameObject prefab, Vector2Int cell, string tileName)

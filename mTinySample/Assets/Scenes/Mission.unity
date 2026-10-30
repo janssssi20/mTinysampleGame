@@ -1057,6 +1057,14 @@ MonoBehaviour:
   hospitalTilePrefab: {fileID: 2404976089743817551, guid: 1395115063caf084c8078d12373d159b, type: 3}
   crossingTilePrefab: {fileID: 3515892662426263873, guid: 950415bba3234c54089d7c5aa1baff74, type: 3}
   policeTilePrefab: {fileID: 6172005062153759221, guid: a9f6512419120334e887586af2685e2c, type: 3}
+  cityRoadEastWest: {fileID: 8955643701008914602, guid: 5620a05f441ded34b96890fabbe409ed, type: 3}
+  cityRoadNorthSouth: {fileID: 6668296368369361411, guid: 48a4d058a40b5814a9a9f8bd00389c87, type: 3}
+  cityRoadNorthEast: {fileID: 3023558077535674077, guid: 6a705ead0831a5d469ab75c4de38bd4d, type: 3}
+  cityRoadEastSouth: {fileID: 6592521826289235137, guid: dbf8ba864e030244ba50d64a45e84a0f, type: 3}
+  cityRoadSouthWest: {fileID: 3253995916842264895, guid: 6893dafe1ce20984194e6db59d1a940c, type: 3}
+  cityRoadNorthWest: {fileID: 6260828884933904212, guid: 66c6b93f4e4851949a6b62bb5bcb4efa, type: 3}
+  cityRoadJunction: {fileID: 5806327148908149800, guid: 66efad64ae54d82449b0b1d77251964f, type: 3}
+  cityGoalTilePrefab: {fileID: 3824407729094150009, guid: 0829ce86cb70e8644aee822ebe344c26, type: 3}
   boardParent: {fileID: 508044034}
   boardCenter: {x: -1.5, y: -1}
   cellSize: 1.8

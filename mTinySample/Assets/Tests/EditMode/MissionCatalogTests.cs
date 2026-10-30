@@ -112,6 +112,30 @@ public class MissionCatalogTests
     }
 
     [Test]
+    public void EveryRoute_IsConnectedInOrder()
+    {
+        foreach (MissionDefinition mission in catalog.missions)
+        {
+            Assert.IsTrue(MissionRoute.IsConnected(mission), mission.id + " route has a gap or is out of order");
+        }
+    }
+
+    [Test]
+    public void CityTiles_SitOnEastWestRoad()
+    {
+        // The hospital, police and crossing art all have their road running
+        // east-west, so they only join the road network there.
+        foreach (MissionDefinition mission in catalog.missions)
+        {
+            foreach (CityTilePlacement tile in mission.cityTiles)
+            {
+                Assert.AreEqual(Side.E | Side.W, MissionRoute.Openings(mission, tile.cell),
+                    mission.id + " " + tile.kind + " at " + tile.cell + " is not on an east-west stretch");
+            }
+        }
+    }
+
+    [Test]
     public void EveryInstruction_IsNonEmpty()
     {
         foreach (MissionDefinition mission in catalog.missions)
