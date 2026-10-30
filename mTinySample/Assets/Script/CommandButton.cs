@@ -102,6 +102,22 @@ public class CommandButton : MonoBehaviour
             return;
         }
 
+        CommandManager commandManager = CommandManager.Instance;
+
+        // Ignore extra presses: no Run icon, no second run
+        if (robot.IsExecuting() ||
+            commandManager == null ||
+            !commandManager.IsGameStarted() ||
+            commandManager.IsGameFinished() ||
+            !commandManager.HasRunnableCommands())
+        {
+            Debug.LogWarning(
+                "CommandButton: Nothing to run right now."
+            );
+
+            return;
+        }
+
         if (uiManager != null && icon != null)
         {
             uiManager.AddVisualBlock(icon);

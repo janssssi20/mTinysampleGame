@@ -14,6 +14,22 @@ public class SequenceUIManager : MonoBehaviour
     }
 
 
+    public void RemoveLastBlock()
+    {
+        if (content == null || content.childCount == 0)
+        {
+            return;
+        }
+
+        Transform last = content.GetChild(content.childCount - 1);
+
+        // Detach first so childCount is correct this frame
+        last.SetParent(null);
+
+        Destroy(last.gameObject);
+    }
+
+
     public void ClearUI()
     {
         foreach (Transform child in content)
