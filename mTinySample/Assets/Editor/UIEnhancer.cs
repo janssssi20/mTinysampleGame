@@ -86,7 +86,9 @@ public static class UIEnhancer
         sequenceViewport.anchorMax = new Vector2(0.5f, 0.5f);
         sequenceViewport.pivot = new Vector2(0.5f, 0.5f);
         sequenceViewport.anchoredPosition = Vector2.zero;
-        sequenceViewport.sizeDelta = new Vector2(1480f, 200f);
+        // The frame art keeps its aspect, drawing ~1345x311 inside its
+        // 1606-wide box; the viewport is that drawn area minus the border.
+        sequenceViewport.sizeDelta = new Vector2(1220f, 220f);
         sequenceScroll.viewport = sequenceViewport;
 
         // Icons line up from the left edge and the strip grows to fit them
@@ -99,7 +101,8 @@ public static class UIEnhancer
         sequenceScroll.content = sequenceContent;
 
         HorizontalLayoutGroup strip = sequenceContent.GetComponent<HorizontalLayoutGroup>();
-        strip.padding = new RectOffset(20, 20, 0, 0);
+        strip.padding = new RectOffset(10, 10, 0, 0);
+        strip.spacing = -8f;
         strip.childAlignment = TextAnchor.MiddleLeft;
         strip.childControlWidth = false;
         strip.childControlHeight = false;

@@ -6,6 +6,9 @@ public class SequenceUIManager : MonoBehaviour
     public GameObject iconPrefab;
     public Transform content;
 
+    [Tooltip("Size of each block icon in the sequence bar.")]
+    public Vector2 iconSize = new Vector2(150f, 150f);
+
     private ScrollRect scroll;
 
     public void AddVisualBlock(Sprite icon)
@@ -13,6 +16,7 @@ public class SequenceUIManager : MonoBehaviour
         GameObject obj = Instantiate(iconPrefab, content);
 
         obj.GetComponent<Image>().sprite = icon;
+        ((RectTransform)obj.transform).sizeDelta = iconSize;
 
         ScrollToNewest();
     }
