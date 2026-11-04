@@ -66,6 +66,15 @@ public class MissionMapUI : MonoBehaviour
 
     [Header("Mission Card")]
     public GameObject popup;
+    public Image popupCard;
+    public Image popupPlayIcon;
+    public TMP_Text popupPlayLabel;
+    public Color[] stageColors =
+    {
+        new Color(0.91f, 0.47f, 0.16f),
+        new Color(0.36f, 0.68f, 0.24f),
+        new Color(0.58f, 0.33f, 0.66f)
+    };
     public TMP_Text popupStageText;
     public TMP_Text popupTitleText;
     public GameObject popupMoveHint;
@@ -290,6 +299,13 @@ public class MissionMapUI : MonoBehaviour
         popupMoveHint.SetActive(mission.requireMovement);
         popupMultiplierHint.SetActive(mission.requireMultiplier);
         popupEmotionHint.SetActive(mission.requireEmotion);
+
+        // The card wears its stage's colour
+        Color stageColor = stageColors[(int)mission.stage];
+        if (popupCard != null) popupCard.color = stageColor;
+        if (popupPlayIcon != null) popupPlayIcon.color = stageColor;
+        if (popupPlayLabel != null) popupPlayLabel.color = stageColor;
+
         popup.SetActive(true);
     }
 

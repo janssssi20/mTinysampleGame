@@ -423,7 +423,7 @@ public static class UIEnhancer
     // TOUCH FEEDBACK
     // =========================================================
 
-    private static void AddTouchFeedback(Scene scene)
+    public static void AddTouchFeedback(Scene scene)
     {
         foreach (GameObject root in scene.GetRootGameObjects())
         {
