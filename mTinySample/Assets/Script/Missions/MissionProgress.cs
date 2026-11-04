@@ -23,6 +23,7 @@ public sealed class MissionProgress
 {
     private const string StarsKeyPrefix = "mtiny.stars.";
     private const string CelebratedKey = "mtiny.celebrated";
+    private const string TrophyKeyPrefix = "mtiny.trophy.";
 
     private readonly MissionCatalog catalog;
     private readonly IProgressStore store;
@@ -113,11 +114,33 @@ public sealed class MissionProgress
         return celebrate;
     }
 
+    // True (once) when a stage's trophy is new or better than the last one
+    // celebrated, so the map plays confetti for it.
+    public bool TakeTrophyCelebration(MissionStage stage, TrophyTier tier)
+    {
+        string key = TrophyKeyPrefix + stage;
+
+        if (tier == TrophyTier.None || (int)tier <= store.GetInt(key, 0))
+        {
+            return false;
+        }
+
+        store.SetInt(key, (int)tier);
+        store.Save();
+
+        return true;
+    }
+
     public void ResetAll()
     {
         for (int i = 0; i < catalog.Count; i++)
         {
             store.DeleteKey(StarsKeyPrefix + catalog.Get(i).id);
+        }
+
+        foreach (MissionStage stage in System.Enum.GetValues(typeof(MissionStage)))
+        {
+            store.DeleteKey(TrophyKeyPrefix + stage);
         }
 
         store.DeleteKey(CelebratedKey);

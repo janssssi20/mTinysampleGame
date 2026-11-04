@@ -11,7 +11,7 @@ public class TeacherResetHold : MonoBehaviour, IPointerDownHandler, IPointerUpHa
     [Header("References")]
     public GameObject confirmPanel;
     public MissionCatalog catalog;
-    public StageMapUI stageMap;
+    public MissionMapUI stageMap;
 
     private HoldTimer timer;
 
