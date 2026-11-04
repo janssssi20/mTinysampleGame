@@ -376,10 +376,14 @@ public static class MainMenuSetup
         Image playIcon = EnsureImage(playBody.transform, "icon", play, new Vector2(0.5f, 0.5f), new Vector2(-80f, 0f), new Vector2(64f, 64f));
         playIcon.color = StageColors[0];
         playIcon.raycastTarget = false;
-        Label(playBody.transform, "label", font, "Play", 56, StageColors[0], new Vector2(0.5f, 0.5f),
+        TMP_Text playLabel = Label(playBody.transform, "label", font, "Play", 56, StageColors[0], new Vector2(0.5f, 0.5f),
             new Vector2(30f, 0f), new Vector2(200f, 90f));
 
         ui.popup = popup.gameObject;
+        ui.popupCard = cardBody;
+        ui.popupPlayIcon = playIcon;
+        ui.popupPlayLabel = playLabel;
+        ui.stageColors = StageColors;
         popup.gameObject.SetActive(false);
 
         // Teacher reset refreshes this map
@@ -389,6 +393,8 @@ public static class MainMenuSetup
             hold.stageMap = ui;
             EditorUtility.SetDirty(hold);
         }
+
+        UIEnhancer.AddTouchFeedback(scene);
 
         EditorUtility.SetDirty(ui);
         EditorSceneManager.MarkSceneDirty(scene);
