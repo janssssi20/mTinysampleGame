@@ -59,6 +59,8 @@ public class CommandButtonManager : MonoBehaviour
 
         started = true;
 
+        AudioManager.Play(Sfx.Start);
+
         // Make sure the timer is running before any block is added
         CommandManager.Instance.StartGame();
 

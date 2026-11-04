@@ -73,12 +73,15 @@ public class GoalZone : MonoBehaviour
         if (MissionManager.Instance != null &&
             !MissionManager.Instance.ReachFinish())
         {
+            AudioManager.Play(Sfx.Oops);
             return;
         }
 
         Debug.Log(
             "YOU WIN!"
         );
+
+        AudioManager.Play(Sfx.Win);
 
         // -------------------------------------------------
         // COMMAND MANAGER

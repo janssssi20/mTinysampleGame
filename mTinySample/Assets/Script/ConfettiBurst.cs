@@ -45,6 +45,8 @@ public class ConfettiBurst : MonoBehaviour
         RectTransform area = (RectTransform)transform;
         Vector2 origin = area.InverseTransformPoint(worldPosition);
 
+        AudioManager.Play(Sfx.Cheer);
+
         for (int i = 0; i < pieceCount; i++)
         {
             Piece piece = i < pieces.Count ? pieces[i] : CreatePiece();

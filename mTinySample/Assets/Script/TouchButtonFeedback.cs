@@ -50,6 +50,7 @@ public class TouchButtonFeedback : MonoBehaviour, IPointerDownHandler, IPointerU
         }
 
         target = pressedScale;
+        AudioManager.Play(Sfx.Tap);
     }
 
     public void OnPointerUp(PointerEventData eventData)
