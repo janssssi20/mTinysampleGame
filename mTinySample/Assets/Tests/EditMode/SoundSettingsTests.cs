@@ -43,14 +43,38 @@ public class SoundSettingsTests
     }
 
     [Test]
+    public void MusicVolume_DefaultsTo70Percent()
+    {
+        Assert.AreEqual(0.7f, new SoundSettings(new FakeStore()).MusicVolume, 0.001f);
+    }
+
+    [Test]
+    public void MusicVolume_IsRememberedAndClamped()
+    {
+        FakeStore store = new FakeStore();
+        SoundSettings settings = new SoundSettings(store);
+
+        settings.SetMusicVolume(0.25f);
+        Assert.AreEqual(0.25f, new SoundSettings(store).MusicVolume, 0.001f);
+
+        settings.SetMusicVolume(1.5f);
+        Assert.AreEqual(1f, settings.MusicVolume, 0.001f);
+
+        settings.SetMusicVolume(-1f);
+        Assert.AreEqual(0f, settings.MusicVolume, 0.001f);
+    }
+
+    [Test]
     public void ResetProgress_KeepsSoundSwitches()
     {
         FakeStore store = new FakeStore();
         new SoundSettings(store).Toggle(SoundChannel.Effects);
+        new SoundSettings(store).SetMusicVolume(0.4f);
 
         MissionCatalog catalog = UnityEngine.ScriptableObject.CreateInstance<MissionCatalog>();
         new MissionProgress(catalog, store).ResetAll();
 
         Assert.IsFalse(new SoundSettings(store).IsOn(SoundChannel.Effects));
+        Assert.AreEqual(0.4f, new SoundSettings(store).MusicVolume, 0.001f);
     }
 }

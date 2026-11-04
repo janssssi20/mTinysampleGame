@@ -631,7 +631,7 @@ public static class MainMenuSetup
         Image dim = panel.gameObject.AddComponent<Image>();
         dim.color = new Color(0f, 0f, 0f, 0.5f);
 
-        Image box = EnsureImage(panel, "box", rounded, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(820f, 800f));
+        Image box = EnsureImage(panel, "box", rounded, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(820f, 900f));
         box.type = Image.Type.Sliced;
         box.preserveAspect = false;
         box.color = new Color(1f, 0.95f, 0.78f);
@@ -639,10 +639,11 @@ public static class MainMenuSetup
         Label(box.transform, "title", font, "Settings", 76, Ink, new Vector2(0.5f, 1f), new Vector2(0f, -85f), new Vector2(700f, 100f));
 
         // Music and Sounds switches; each one paints itself on or off
-        SoundRow(box.transform, rounded, font, "musicToggle", "icon_music", SoundChannel.Music, "Music", 150f);
-        SoundRow(box.transform, rounded, font, "soundToggle", "icon_sound", SoundChannel.Effects, "Sounds", -15f);
+        SoundRow(box.transform, rounded, font, "musicToggle", "icon_music", SoundChannel.Music, "Music", 205f);
+        VolumeRow(box.transform, rounded, circle, orange, 70f);
+        SoundRow(box.transform, rounded, font, "soundToggle", "icon_sound", SoundChannel.Effects, "Sounds", -70f);
 
-        Button resetButton = SettingsRow(box.transform, rounded, font, "resetButton", replay, "Reset progress", orange, -215f).button;
+        Button resetButton = SettingsRow(box.transform, rounded, font, "resetButton", replay, "Reset progress", orange, -265f).button;
 
         // Reset opens the Yes/No question; Settings closes behind it
         if (hold != null && hold.confirmPanel != null)
@@ -720,6 +721,80 @@ public static class MainMenuSetup
         toggle.face = (Image)row.button.targetGraphic;
         toggle.label = row.label;
         toggle.offSlash = slash;
+    }
+
+    // Music volume slider: quiet speaker, chunky track, big round handle
+    // a small finger can grab, loud speaker
+    private static void VolumeRow(Transform box, Sprite rounded, Sprite circle, Color handleColor, float y)
+    {
+        Sprite speaker = UIEnhancer.LoadIcon("icon_sound");
+
+        RectTransform row = NewRect("musicVolume", box);
+        Place(row, new Vector2(0.5f, 0.5f), new Vector2(0f, y), new Vector2(560f, 110f));
+
+        Image quiet = EnsureImage(row, "quietIcon", speaker, new Vector2(0f, 0.5f), new Vector2(28f, 0f), new Vector2(52f, 52f));
+        quiet.color = Ink;
+        quiet.raycastTarget = false;
+        Image loud = EnsureImage(row, "loudIcon", speaker, new Vector2(1f, 0.5f), new Vector2(-40f, 0f), new Vector2(80f, 80f));
+        loud.color = Ink;
+        loud.raycastTarget = false;
+
+        RectTransform sliderRect = NewRect("slider", row);
+        Place(sliderRect, new Vector2(0.5f, 0.5f), new Vector2(-6f, 0f), new Vector2(380f, 100f));
+
+        Image track = EnsureImage(sliderRect, "track", rounded, new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
+        TrackBar(track, new Color(0.84f, 0.73f, 0.52f));
+
+        // The slider stretches the fill to its area's full height, so the
+        // area is the track's height. It stops a handle-radius short of
+        // the right end so the fill always ends under the handle.
+        RectTransform fillArea = NewRect("fillArea", sliderRect);
+        fillArea.anchorMin = new Vector2(0f, 0.5f);
+        fillArea.anchorMax = new Vector2(1f, 0.5f);
+        fillArea.offsetMin = new Vector2(0f, -15f);
+        fillArea.offsetMax = new Vector2(-45f, 15f);
+        Image fill = EnsureImage(fillArea, "fill", rounded, new Vector2(0f, 0.5f), Vector2.zero, Vector2.zero);
+        TrackBar(fill, new Color(0.36f, 0.69f, 0.25f));
+        Stretch(fill.rectTransform);
+        fill.raycastTarget = false;
+
+        // Inset by half the handle so it never pokes past the track ends
+        RectTransform handleArea = NewRect("handleArea", sliderRect);
+        Stretch(handleArea);
+        handleArea.offsetMin = new Vector2(45f, 0f);
+        handleArea.offsetMax = new Vector2(-45f, 0f);
+        Image handle = EnsureImage(handleArea, "handle", circle, new Vector2(0f, 0.5f), Vector2.zero, Vector2.zero);
+        handle.rectTransform.anchorMin = new Vector2(0f, 0f);
+        handle.rectTransform.anchorMax = new Vector2(0f, 1f);
+        handle.rectTransform.pivot = new Vector2(0.5f, 0.5f);
+        handle.rectTransform.sizeDelta = new Vector2(90f, 0f);
+        handle.color = handleColor;
+
+        Slider slider = sliderRect.gameObject.AddComponent<Slider>();
+        slider.direction = Slider.Direction.LeftToRight;
+        slider.minValue = 0f;
+        slider.maxValue = 1f;
+        slider.fillRect = fill.rectTransform;
+        slider.handleRect = handle.rectTransform;
+        slider.targetGraphic = handle;
+        slider.value = SoundSettings.DefaultMusicVolume / 100f;
+        sliderRect.gameObject.AddComponent<MusicVolumeSlider>();
+    }
+
+    // A rounded bar 30 px tall stretched along the slider
+    private static void TrackBar(Image bar, Color color)
+    {
+        RectTransform rect = bar.rectTransform;
+        rect.anchorMin = new Vector2(0f, 0.5f);
+        rect.anchorMax = new Vector2(1f, 0.5f);
+        rect.pivot = new Vector2(0.5f, 0.5f);
+        rect.anchoredPosition = Vector2.zero;
+        rect.sizeDelta = new Vector2(0f, 30f);
+
+        bar.type = Image.Type.Sliced;
+        bar.preserveAspect = false;
+        bar.pixelsPerUnitMultiplier = 3f;
+        bar.color = color;
     }
 
     private static bool Ellipse(float x, float y, float cx, float cy, float rx, float ry)

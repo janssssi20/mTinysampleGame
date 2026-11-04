@@ -34,94 +34,128 @@ public static class AudioSynth
     // =========================================================
     // MUSIC
     // =========================================================
-    // A cheerful 16-bar loop in C major at 112 BPM: a soft lead,
-    // bouncing bass, a light arpeggio and gentle drums.
+    // A calm music-box lullaby for K-G2: 16 bars in C major at
+    // 76 BPM. Bell-like melody, soft rocking accompaniment, a warm
+    // bass and a quiet pad; no drums, so children can think while
+    // it plays. Notes ring past the loop point and wrap to the start,
+    // so the loop has no seam.
     // =========================================================
 
-    private const float Bpm = 112f;
+    private const float Bpm = 76f;
 
-    // Each bar: chord root (MIDI) and melody as (note, eighths); -1 = rest
-    private static readonly int[] ChordRoots = { 48, 43, 45, 41, 48, 41, 43, 48 };
-
-    private static readonly int[][] ChordTones =
+    // Chord tones per bar (bass root first), 16 bars:
+    // C Am F G  C Em F G | C Am F G  C Em F C
+    private static readonly int[][] Chords =
     {
-        new[] { 60, 64, 67 }, new[] { 59, 62, 67 }, new[] { 60, 64, 69 }, new[] { 60, 65, 69 },
-        new[] { 60, 64, 67 }, new[] { 60, 65, 69 }, new[] { 59, 62, 67 }, new[] { 60, 64, 67 }
+        new[] { 48, 60, 64, 67 }, new[] { 45, 57, 60, 64 }, new[] { 41, 57, 60, 65 }, new[] { 43, 55, 59, 62 },
+        new[] { 48, 60, 64, 67 }, new[] { 40, 55, 59, 64 }, new[] { 41, 57, 60, 65 }, new[] { 43, 55, 59, 62 },
+        new[] { 48, 60, 64, 67 }, new[] { 45, 57, 60, 64 }, new[] { 41, 57, 60, 65 }, new[] { 43, 55, 59, 62 },
+        new[] { 48, 60, 64, 67 }, new[] { 40, 55, 59, 64 }, new[] { 41, 57, 60, 65 }, new[] { 48, 60, 64, 67 }
     };
 
-    private static readonly int[][] MelodyA =
+    // Melody per bar as (note, eighths); -1 = rest. Small, singable steps.
+    private static readonly int[][] Melody =
     {
-        new[] { 76, 2, 79, 2, 76, 1, 74, 1, 72, 2 },
-        new[] { 74, 2, 67, 2, 71, 2, 74, 2 },
-        new[] { 72, 2, 76, 2, 81, 3, 79, 1 },
+        new[] { 76, 4, 79, 2, 76, 2 },
+        new[] { 72, 2, 74, 2, 76, 4 },
+        new[] { 77, 4, 76, 2, 74, 2 },
+        new[] { 74, 6, -1, 2 },
+        new[] { 76, 2, 79, 2, 81, 4 },
+        new[] { 79, 4, 76, 4 },
         new[] { 77, 2, 76, 2, 74, 2, 72, 2 },
-        new[] { 76, 1, 76, 1, 79, 2, 84, 2, 79, 2 },
-        new[] { 81, 2, 79, 2, 77, 2, 81, 2 },
-        new[] { 79, 2, 77, 2, 74, 2, 71, 2 },
-        new[] { 72, 4, -1, 4 }
-    };
+        new[] { 74, 8 },
 
-    private static readonly int[][] MelodyB =
-    {
-        new[] { 72, 1, 74, 1, 76, 2, 79, 2, 76, 2 },
-        new[] { 74, 3, 71, 1, 67, 2, 71, 2 },
-        new[] { 69, 2, 72, 2, 76, 2, 72, 2 },
-        new[] { 77, 3, 76, 1, 74, 2, 77, 2 },
-        new[] { 79, 2, 76, 2, 72, 2, 76, 2 },
-        new[] { 77, 2, 81, 2, 84, 2, 81, 2 },
-        new[] { 79, 2, 74, 2, 71, 2, 74, 2 },
-        new[] { 72, 2, 67, 2, 72, 4 }
+        new[] { 72, 4, 76, 4 },
+        new[] { 76, 2, 74, 2, 72, 4 },
+        new[] { 69, 4, 72, 4 },
+        new[] { 71, 2, 74, 2, 79, 4 },
+        new[] { 79, 4, 76, 4 },
+        new[] { 76, 2, 74, 2, 71, 4 },
+        new[] { 72, 4, 74, 4 },
+        new[] { 72, 8 }
     };
 
     private static float[] Music()
     {
         float beat = 60f / Bpm;
         float eighth = beat / 2f;
-        int bars = 16;
+        int bars = Melody.Length;
         float[] buffer = new float[Mathf.RoundToInt(bars * 4 * beat * Rate)];
-        System.Random noise = new System.Random(7);
 
         for (int bar = 0; bar < bars; bar++)
         {
-            int chord = bar % 8;
+            int[] chord = Chords[bar];
             float barStart = bar * 4 * beat;
-            int[] melody = bar < 8 ? MelodyA[chord] : MelodyB[chord];
 
-            // Lead
+            // Music-box melody, an octave above the chords
             float t = barStart;
+            int[] melody = Melody[bar];
             for (int i = 0; i + 1 < melody.Length; i += 2)
             {
-                float length = melody[i + 1] * eighth;
                 if (melody[i] >= 0)
                 {
-                    AddNote(buffer, t, length * 0.95f, Freq(melody[i]), 0.22f, Lead, 0.25f);
+                    AddBell(buffer, t, Freq(melody[i]), 0.26f, 0.9f);
                 }
-                t += length;
+                t += melody[i + 1] * eighth;
             }
 
-            // Bass on beats 1-4, root then fifth
+            // Rocking accompaniment: low-high-mid-high in quarter notes
+            int[] rock = { chord[1], chord[3], chord[2], chord[3] };
             for (int b = 0; b < 4; b++)
             {
-                int note = ChordRoots[chord] + (b % 2 == 0 ? 0 : 7);
-                AddNote(buffer, barStart + b * beat, beat * 0.8f, Freq(note), 0.22f, Triangle, 0.6f);
+                AddBell(buffer, barStart + b * beat, Freq(rock[b]), 0.07f, 0.6f);
             }
 
-            // Arpeggio in eighths
-            for (int e = 0; e < 8; e++)
-            {
-                int[] tones = ChordTones[chord];
-                AddNote(buffer, barStart + e * eighth, eighth * 0.9f, Freq(tones[e % 3]), 0.06f, Sine, 0.15f);
-            }
+            // Warm bass on beats 1 and 3
+            AddBell(buffer, barStart, Freq(chord[0]), 0.16f, 1.2f, harmonics: false);
+            AddBell(buffer, barStart + 2 * beat, Freq(chord[0] + 12), 0.08f, 0.9f, harmonics: false);
 
-            // Drums: kick on 1 and 3, hat on the off-beats
-            for (int b = 0; b < 4; b++)
+            // Quiet pad holding the chord under everything
+            for (int c = 1; c < chord.Length; c++)
             {
-                if (b % 2 == 0) AddKick(buffer, barStart + b * beat, 0.35f);
-                AddHat(buffer, barStart + b * beat + eighth, 0.045f, noise);
+                AddPad(buffer, barStart, 4 * beat, Freq(chord[c]), 0.025f);
             }
         }
 
-        return Normalize(buffer, 0.85f);
+        return Normalize(buffer, 0.8f);
+    }
+
+    // Struck bell: sharp start, long gentle ring. Writes past the end
+    // wrap to the start, which keeps the music loop seamless.
+    private static void AddBell(float[] buffer, float start, float freq, float volume, float ring,
+        bool harmonics = true)
+    {
+        int first = Mathf.RoundToInt(start * Rate);
+        int count = Mathf.RoundToInt(ring * 4f * Rate);
+
+        for (int i = 0; i < count; i++)
+        {
+            float time = (float)i / Rate;
+            float tone = Sine(freq * time);
+            if (harmonics)
+            {
+                // Overtones fade faster than the note, like a music box tine
+                tone += 0.35f * Sine(2f * freq * time) * Mathf.Exp(-time / (ring * 0.3f));
+                tone += 0.12f * Sine(3f * freq * time) * Mathf.Exp(-time / (ring * 0.15f));
+            }
+
+            float envelope = Mathf.Clamp01(time / 0.004f) * Mathf.Exp(-time / ring);
+            buffer[(first + i) % buffer.Length] += tone * volume * envelope;
+        }
+    }
+
+    // Soft held tone that swells in and out
+    private static void AddPad(float[] buffer, float start, float length, float freq, float volume)
+    {
+        int first = Mathf.RoundToInt(start * Rate);
+        int count = Mathf.RoundToInt(length * Rate);
+
+        for (int i = 0; i < count; i++)
+        {
+            float time = (float)i / Rate;
+            float envelope = Mathf.Sin(Mathf.PI * i / count);
+            buffer[(first + i) % buffer.Length] += Sine(freq * time) * volume * envelope;
+        }
     }
 
 
@@ -264,20 +298,6 @@ public static class AudioSynth
             float envelope = Mathf.Clamp01(i / (0.005f * Rate)) * (1f - k * k);
 
             buffer[first + i] += wave(phase) * volume * envelope;
-        }
-    }
-
-    private static void AddKick(float[] buffer, float start, float volume)
-    {
-        int first = Mathf.RoundToInt(start * Rate);
-        int count = Mathf.RoundToInt(0.12f * Rate);
-        float phase = 0f;
-
-        for (int i = 0; i < count && first + i < buffer.Length; i++)
-        {
-            float k = (float)i / count;
-            phase += Mathf.Lerp(130f, 45f, k) / Rate;
-            buffer[first + i] += Sine(phase) * volume * (1f - k) * (1f - k);
         }
     }
 
