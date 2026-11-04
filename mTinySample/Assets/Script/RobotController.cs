@@ -343,6 +343,8 @@ public void RunProgram()
             "Program finished without reaching the goal."
         );
 
+        AudioManager.Play(Sfx.Oops);
+
         yield return ShowEmotion(EmotionType.Sad);
 
         FinishExecution();
@@ -617,6 +619,8 @@ public void RunProgram()
         // SMOOTH MOVEMENT
         // =====================================================
 
+        AudioManager.Play(Sfx.Step);
+
         float t = 0f;
 
         while (t < 1f)
@@ -802,6 +806,8 @@ public void RunProgram()
         Quaternion startRot =
             transform.rotation;
 
+        AudioManager.Play(Sfx.Turn);
+
         // Snap to a multiple of 90 so small errors never accumulate
         float targetZ =
             Mathf.Round(
@@ -934,6 +940,8 @@ public void RunProgram()
 
     private IEnumerator PlayBumped()
     {
+        AudioManager.Play(Sfx.Oops);
+
         if (commandManager == null)
         {
             Debug.LogError(

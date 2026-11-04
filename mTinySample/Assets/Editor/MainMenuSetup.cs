@@ -581,6 +581,31 @@ public static class MainMenuSetup
             return (r >= 22f && r <= 46f) || (r > 46f && tooth);
         });
 
+        // Two beamed eighth notes
+        UIEnhancer.WriteIcon("icon_music", (x, y) =>
+        {
+            bool heads = Ellipse(x, y, 34f, 30f, 18f, 13f) || Ellipse(x, y, 90f, 38f, 18f, 13f);
+            bool stems = (x >= 44f && x <= 54f && y >= 30f && y <= 108f) ||
+                         (x >= 100f && x <= 110f && y >= 38f && y <= 116f);
+            bool beam = x >= 44f && x <= 110f && Mathf.Abs(y - (100f + (x - 44f) * 0.12f)) <= 9f;
+            return heads || stems || beam;
+        });
+
+        // Speaker with two sound waves
+        UIEnhancer.WriteIcon("icon_sound", (x, y) =>
+        {
+            bool body = x >= 14f && x <= 40f && y >= 46f && y <= 82f;
+            bool cone = x >= 38f && x <= 66f && Mathf.Abs(y - 64f) <= 18f + (x - 38f) * 1.1f;
+            float d = Vector2.Distance(new Vector2(x, y), new Vector2(62f, 64f));
+            bool front = x > 72f && Mathf.Abs(y - 64f) < (x - 62f) * 1.1f;
+            bool waves = front && ((d >= 22f && d <= 32f) || (d >= 42f && d <= 52f));
+            return body || cone || waves;
+        });
+
+        // Thick slash drawn over an icon when its sound is off
+        UIEnhancer.WriteIcon("icon_slash", (x, y) =>
+            Mathf.Abs(x + y - 128f) <= 13f && x >= 10f && x <= 118f);
+
         Scene scene = EditorSceneManager.OpenScene(MainMenuPath, OpenSceneMode.Single);
 
         Transform bg = Find(scene, "bg");
@@ -606,27 +631,18 @@ public static class MainMenuSetup
         Image dim = panel.gameObject.AddComponent<Image>();
         dim.color = new Color(0f, 0f, 0f, 0.5f);
 
-        Image box = EnsureImage(panel, "box", rounded, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(820f, 520f));
+        Image box = EnsureImage(panel, "box", rounded, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(820f, 800f));
         box.type = Image.Type.Sliced;
         box.preserveAspect = false;
         box.color = new Color(1f, 0.95f, 0.78f);
 
         Label(box.transform, "title", font, "Settings", 76, Ink, new Vector2(0.5f, 1f), new Vector2(0f, -85f), new Vector2(700f, 100f));
 
-        Image resetBody = EnsureImage(box.transform, "resetButton", rounded, new Vector2(0.5f, 0.5f),
-            new Vector2(0f, -30f), new Vector2(560f, 150f));
-        resetBody.type = Image.Type.Sliced;
-        resetBody.preserveAspect = false;
-        resetBody.color = orange;
-        Button resetButton = resetBody.gameObject.AddComponent<Button>();
-        resetButton.targetGraphic = resetBody;
-        Image resetIcon = EnsureImage(resetBody.transform, "icon", replay, new Vector2(0f, 0.5f), new Vector2(75f, 0f), new Vector2(84f, 84f));
-        resetIcon.raycastTarget = false;
-        TMP_Text resetLabel = Label(resetBody.transform, "label", font, "Reset progress", 54, Color.white,
-            new Vector2(0.5f, 0.5f), new Vector2(65f, 0f), new Vector2(390f, 110f));
-        resetLabel.enableAutoSizing = true;
-        resetLabel.fontSizeMin = 30;
-        resetLabel.fontSizeMax = 54;
+        // Music and Sounds switches; each one paints itself on or off
+        SoundRow(box.transform, rounded, font, "musicToggle", "icon_music", SoundChannel.Music, "Music", 150f);
+        SoundRow(box.transform, rounded, font, "soundToggle", "icon_sound", SoundChannel.Effects, "Sounds", -15f);
+
+        Button resetButton = SettingsRow(box.transform, rounded, font, "resetButton", replay, "Reset progress", orange, -215f).button;
 
         // Reset opens the Yes/No question; Settings closes behind it
         if (hold != null && hold.confirmPanel != null)
@@ -660,7 +676,56 @@ public static class MainMenuSetup
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
 
-        Debug.Log("[mTiny] Settings with Reset progress added to the Main Menu.");
+        Debug.Log("[mTiny] Settings with Music, Sounds and Reset progress added to the Main Menu.");
+    }
+
+    // A wide Settings button: icon on the left, label beside it
+    private static (Button button, Image icon, TMP_Text label) SettingsRow(Transform box, Sprite rounded, TMP_FontAsset font,
+        string name, Sprite icon, string text, Color color, float y)
+    {
+        Image body = EnsureImage(box, name, rounded, new Vector2(0.5f, 0.5f), new Vector2(0f, y), new Vector2(560f, 150f));
+        body.type = Image.Type.Sliced;
+        body.preserveAspect = false;
+        body.color = color;
+        Button button = body.gameObject.AddComponent<Button>();
+        button.targetGraphic = body;
+
+        Image glyph = EnsureImage(body.transform, "icon", icon, new Vector2(0f, 0.5f), new Vector2(75f, 0f), new Vector2(84f, 84f));
+        glyph.raycastTarget = false;
+
+        TMP_Text label = Label(body.transform, "label", font, text, 54, Color.white,
+            new Vector2(0.5f, 0.5f), new Vector2(65f, 0f), new Vector2(390f, 110f));
+        label.enableAutoSizing = true;
+        label.fontSizeMin = 30;
+        label.fontSizeMax = 54;
+
+        return (button, glyph, label);
+    }
+
+    private static void SoundRow(Transform box, Sprite rounded, TMP_FontAsset font,
+        string name, string iconName, SoundChannel channel, string title, float y)
+    {
+        var row = SettingsRow(box, rounded, font, name, UIEnhancer.LoadIcon(iconName), title + ": ON",
+            new Color(0.36f, 0.69f, 0.25f), y);
+
+        Image slash = EnsureImage(row.icon.transform, "offSlash", UIEnhancer.LoadIcon("icon_slash"),
+            new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(84f, 84f));
+        slash.color = new Color(0.85f, 0.2f, 0.15f);
+        slash.raycastTarget = false;
+        slash.gameObject.SetActive(false);
+
+        SoundToggleButton toggle = row.button.gameObject.AddComponent<SoundToggleButton>();
+        toggle.channel = channel;
+        toggle.title = title;
+        toggle.face = (Image)row.button.targetGraphic;
+        toggle.label = row.label;
+        toggle.offSlash = slash;
+    }
+
+    private static bool Ellipse(float x, float y, float cx, float cy, float rx, float ry)
+    {
+        float u = (x - cx) / rx, v = (y - cy) / ry;
+        return u * u + v * v <= 1f;
     }
 
     // =========================================================

@@ -94,6 +94,8 @@ public class MissionRunner : MonoBehaviour
             celebrationPanel.SetActive(true);
         }
 
+        AudioManager.Play(Sfx.Cheer);
+
         Debug.Log("All missions complete. Celebration!");
     }
 
