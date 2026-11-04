@@ -26,6 +26,14 @@ public static class UIPreview
         Scene menu = EditorSceneManager.OpenScene("Assets/Scenes/MainMenu.unity", OpenSceneMode.Single);
         Capture("1_menu");
 
+        GameObject settingsPanel = FindPanel(menu, "settingsPanel");
+        if (settingsPanel != null)
+        {
+            settingsPanel.SetActive(true);
+            Capture("1b_settings");
+            settingsPanel.SetActive(false);
+        }
+
         GameObject missionPanel = FindPanel(menu, "missionPanel");
         missionPanel.SetActive(true);
 
