@@ -21,7 +21,8 @@ public class AudioManager : MonoBehaviour
 
     private const string Folder = "Audio/";
 
-    [Range(0f, 1f)] public float musicVolume = 0.35f;
+    [Tooltip("Music volume when the Settings slider is at full.")]
+    [Range(0f, 1f)] public float maxMusicVolume = 0.5f;
     [Range(0f, 1f)] public float effectsVolume = 0.8f;
 
     private AudioSource music;
@@ -51,7 +52,7 @@ public class AudioManager : MonoBehaviour
         music = gameObject.AddComponent<AudioSource>();
         music.loop = true;
         music.playOnAwake = false;
-        music.volume = musicVolume;
+        music.volume = maxMusicVolume * settings.MusicVolume;
         music.clip = Resources.Load<AudioClip>(Folder + "music_theme");
 
         effects = gameObject.AddComponent<AudioSource>();
@@ -112,6 +113,23 @@ public class AudioManager : MonoBehaviour
         }
 
         return on;
+    }
+
+    public float MusicVolume
+    {
+        get { return settings.MusicVolume; }
+    }
+
+    // Live while the slider moves; SaveSettings() writes it to disk
+    public void SetMusicVolume(float volume)
+    {
+        settings.SetMusicVolume(volume);
+        music.volume = maxMusicVolume * settings.MusicVolume;
+    }
+
+    public void SaveSettings()
+    {
+        settings.Save();
     }
 
     private void ApplyMusic()
