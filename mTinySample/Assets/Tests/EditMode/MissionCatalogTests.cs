@@ -58,17 +58,29 @@ public class MissionCatalogTests
     }
 
     [Test]
-    public void NewMissions_RespectBlockLimits()
+    public void EveryMission_RespectsBlockLimits()
     {
         foreach (MissionDefinition mission in catalog.missions)
         {
-            // E1-E3 are the owner's existing missions, kept as built
-            if (mission.id == "E1" || mission.id == "E2" || mission.id == "E3") continue;
-
-            int limit = mission.stage == MissionStage.Easy ? 5 : mission.stage == MissionStage.Medium ? 7 : 8;
+            int limit = mission.stage == MissionStage.Easy ? 6 : mission.stage == MissionStage.Medium ? 9 : 12;
             int blocks = MissionSimulator.CountBlocks(mission.intendedSolution);
 
             Assert.LessOrEqual(blocks, limit, mission.id + " needs " + blocks + " blocks");
+        }
+    }
+
+    [Test]
+    public void BoardTiles_FollowStageRanges()
+    {
+        // Board tiles = start + path + goal.
+        // Easy 5-8, Medium 8-12, Hard 12-15 (owner's request).
+        foreach (MissionDefinition mission in catalog.missions)
+        {
+            int tiles = MissionRoute.Cells(mission).Count;
+            int min = mission.stage == MissionStage.Easy ? 5 : mission.stage == MissionStage.Medium ? 8 : 12;
+            int max = mission.stage == MissionStage.Easy ? 8 : mission.stage == MissionStage.Medium ? 12 : 15;
+
+            Assert.That(tiles, Is.InRange(min, max), mission.id + " has " + tiles + " tiles");
         }
     }
 

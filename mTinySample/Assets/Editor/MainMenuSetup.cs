@@ -562,6 +562,108 @@ public static class MainMenuSetup
     }
 
     // =========================================================
+    // SETTINGS
+    // =========================================================
+    // A gear button on the title screen opens Settings, where
+    // "Reset progress" asks the existing Yes/No question before
+    // clearing stars, unlocks and trophies.
+    // =========================================================
+
+    [MenuItem("mTiny/Setup/Add Settings")]
+    public static void AddSettings()
+    {
+        UIEnhancer.WriteIcon("icon_gear", (x, y) =>
+        {
+            float dx = x - 64f, dy = y - 64f;
+            float r = Mathf.Sqrt(dx * dx + dy * dy);
+            float angle = Mathf.Atan2(dy, dx) * Mathf.Rad2Deg + 360f;
+            bool tooth = r <= 58f && (angle % 45f) < 20f;
+            return (r >= 22f && r <= 46f) || (r > 46f && tooth);
+        });
+
+        Scene scene = EditorSceneManager.OpenScene(MainMenuPath, OpenSceneMode.Single);
+
+        Transform bg = Find(scene, "bg");
+        Transform canvas = bg.parent;
+        TMP_FontAsset font = Find(scene, "Text (TMP)", Find(scene, "Explore", bg)).GetComponent<TMP_Text>().font;
+        TeacherResetHold hold = Object.FindFirstObjectByType<TeacherResetHold>(FindObjectsInactive.Include);
+
+        Sprite circle = UIEnhancer.LoadIcon("node_circle");
+        Sprite rounded = UIEnhancer.LoadIcon("ui_rounded");
+        Sprite gear = UIEnhancer.LoadIcon("icon_gear");
+        Sprite replay = UIEnhancer.LoadIcon("icon_replay");
+        Color orange = new Color(0.85f, 0.49f, 0.16f);
+
+        foreach (string oldName in new[] { "settingsButton", "settingsPanel" })
+        {
+            Transform old = Find(scene, oldName, canvas);
+            if (old != null) Object.DestroyImmediate(old.gameObject);
+        }
+
+        // ---------------- PANEL ----------------
+        RectTransform panel = NewRect("settingsPanel", canvas);
+        Stretch(panel);
+        Image dim = panel.gameObject.AddComponent<Image>();
+        dim.color = new Color(0f, 0f, 0f, 0.5f);
+
+        Image box = EnsureImage(panel, "box", rounded, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(820f, 520f));
+        box.type = Image.Type.Sliced;
+        box.preserveAspect = false;
+        box.color = new Color(1f, 0.95f, 0.78f);
+
+        Label(box.transform, "title", font, "Settings", 76, Ink, new Vector2(0.5f, 1f), new Vector2(0f, -85f), new Vector2(700f, 100f));
+
+        Image resetBody = EnsureImage(box.transform, "resetButton", rounded, new Vector2(0.5f, 0.5f),
+            new Vector2(0f, -30f), new Vector2(560f, 150f));
+        resetBody.type = Image.Type.Sliced;
+        resetBody.preserveAspect = false;
+        resetBody.color = orange;
+        Button resetButton = resetBody.gameObject.AddComponent<Button>();
+        resetButton.targetGraphic = resetBody;
+        Image resetIcon = EnsureImage(resetBody.transform, "icon", replay, new Vector2(0f, 0.5f), new Vector2(75f, 0f), new Vector2(84f, 84f));
+        resetIcon.raycastTarget = false;
+        TMP_Text resetLabel = Label(resetBody.transform, "label", font, "Reset progress", 54, Color.white,
+            new Vector2(0.5f, 0.5f), new Vector2(65f, 0f), new Vector2(390f, 110f));
+        resetLabel.enableAutoSizing = true;
+        resetLabel.fontSizeMin = 30;
+        resetLabel.fontSizeMax = 54;
+
+        // Reset opens the Yes/No question; Settings closes behind it
+        if (hold != null && hold.confirmPanel != null)
+        {
+            UnityEventTools.AddBoolPersistentListener(resetButton.onClick, hold.confirmPanel.SetActive, true);
+            hold.confirmPanel.transform.SetAsLastSibling();
+        }
+        UnityEventTools.AddBoolPersistentListener(resetButton.onClick, panel.gameObject.SetActive, false);
+
+        Button closeButton = CircleButton(box.transform, "closeButton", circle, UIEnhancer.LoadIcon("icon_undo"), orange,
+            new Vector2(1f, 1f), new Vector2(-70f, -70f), 100f);
+        closeButton.GetComponentsInChildren<Image>(true).First(i => i.name == "icon").gameObject.SetActive(false);
+        Label(closeButton.transform, "x", font, "X", 60, Color.white, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(90f, 90f));
+        UnityEventTools.AddBoolPersistentListener(closeButton.onClick, panel.gameObject.SetActive, false);
+
+        panel.gameObject.SetActive(false);
+
+        // ---------------- GEAR BUTTON ----------------
+        Button gearButton = CircleButton(bg, "settingsButton", circle, gear, orange,
+            new Vector2(1f, 1f), new Vector2(-90f, -90f), 130f);
+        UnityEventTools.AddBoolPersistentListener(gearButton.onClick, panel.gameObject.SetActive, true);
+
+        // Keep the confirm question on top of everything
+        if (hold != null && hold.confirmPanel != null)
+        {
+            hold.confirmPanel.transform.SetAsLastSibling();
+        }
+
+        UIEnhancer.AddTouchFeedback(scene);
+
+        EditorSceneManager.MarkSceneDirty(scene);
+        EditorSceneManager.SaveScene(scene);
+
+        Debug.Log("[mTiny] Settings with Reset progress added to the Main Menu.");
+    }
+
+    // =========================================================
     // PADLOCK SPRITE
     // =========================================================
     // A flat grey padlock drawn in code; the project has no lock art.
