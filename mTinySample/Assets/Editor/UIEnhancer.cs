@@ -409,136 +409,12 @@ public static class UIEnhancer
 
     private static void EnhanceMainMenu()
     {
+        // The mission map is built by MainMenuSetup.BuildMissionMap; here
+        // the Main Menu only gets touch feedback on its buttons.
         Scene scene = EditorSceneManager.OpenScene("Assets/Scenes/MainMenu.unity", OpenSceneMode.Single);
-
-        Transform root = Find(scene, "mainMenuMissionPanel");
-        root.localScale = Vector3.one * 1.12f;
-
-        StageMapUI ui = root.GetComponent<StageMapUI>();
-        ui.doneColor = new Color(0.42f, 0.74f, 0.33f);
-        ui.nextColor = new Color(1f, 0.62f, 0.18f);
-        ui.lockedColor = new Color(0.78f, 0.76f, 0.72f);
-
-        TMP_FontAsset font = Find(scene, "Text (TMP)", Find(scene, "Explore")).GetComponent<TMP_Text>().font;
-        Sprite pill = LoadIcon("ui_rounded");
-
-        // ---------------- STAGE CARDS ----------------
-        string[] names = { "EASY", "MEDIUM", "HARD" };
-        Color[] ribbonColors =
-        {
-            new Color(0.93f, 0.49f, 0.16f),
-            new Color(0.36f, 0.68f, 0.24f),
-            new Color(0.58f, 0.33f, 0.66f)
-        };
-
-        for (int i = 0; i < ui.stageCards.Length; i++)
-        {
-            StageMapUI.StageCard card = ui.stageCards[i];
-            Transform cardT = card.button.transform;
-
-            // The card art says "MISSION 1/2/3"; a stage ribbon covers it
-            Image ribbon = MainMenuSetup.EnsureImage(cardT, "stageRibbon", pill,
-                new Vector2(0.5f, 1f), new Vector2(0f, -46f), new Vector2(290f, 84f));
-            ribbon.preserveAspect = false;
-            ribbon.type = Image.Type.Sliced;
-            ribbon.pixelsPerUnitMultiplier = 1.4f;
-            ribbon.color = ribbonColors[i];
-            ribbon.raycastTarget = false;
-
-            TextMeshProUGUI label = ribbon.GetComponentInChildren<TextMeshProUGUI>(true);
-            if (label == null)
-            {
-                label = new GameObject("label", typeof(RectTransform)).AddComponent<TextMeshProUGUI>();
-                label.transform.SetParent(ribbon.transform, false);
-            }
-            Stretch(Rect(label.transform));
-            label.font = font;
-            label.text = names[i];
-            label.enableAutoSizing = true;
-            label.fontSizeMin = 30;
-            label.fontSizeMax = 54;
-            label.color = Color.white;
-            label.alignment = TextAlignmentOptions.Center;
-            label.raycastTarget = false;
-
-            // The old small title under the art is now redundant
-            foreach (TMP_Text text in cardT.GetComponentsInChildren<TMP_Text>(true))
-            {
-                if (text != card.starsText && text != label) text.gameObject.SetActive(false);
-            }
-
-            // Star and count share one baseline, centred under the art
-            RectTransform starsRect = Rect(card.starsText.transform);
-            starsRect.pivot = new Vector2(0f, 0.5f);
-            starsRect.anchoredPosition = new Vector2(-45f, 75f);
-            starsRect.sizeDelta = new Vector2(170f, 70f);
-            card.starsText.fontSize = 50;
-            card.starsText.alignment = TextAlignmentOptions.MidlineLeft;
-
-            RectTransform starIcon = Rect(Find(scene, "starIcon", cardT));
-            starIcon.anchoredPosition = new Vector2(-85f, 75f);
-            starIcon.sizeDelta = new Vector2(66f, 66f);
-
-            RectTransform lockIcon = Rect(card.lockIcon.transform);
-            lockIcon.sizeDelta = new Vector2(190f, 190f);
-            lockIcon.anchoredPosition = new Vector2(0f, 30f);
-        }
-
-        // ---------------- TRAIL ----------------
-        foreach (StageMapUI.TrailNode node in ui.nodes)
-        {
-            RectTransform nodeRect = Rect(node.button.transform);
-            nodeRect.sizeDelta = new Vector2(190f, 190f);
-
-            node.background.sprite = LoadIcon("node_circle");
-            node.background.preserveAspect = true;
-
-            Outline oldOutline = node.background.GetComponent<Outline>();
-            if (oldOutline != null) Object.DestroyImmediate(oldOutline);
-
-            // White ring keeps every node readable on the sandy panel
-            Image ring = MainMenuSetup.EnsureImage(node.background.transform, "ring", LoadIcon("node_ring"),
-                new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(190f, 190f));
-            ring.raycastTarget = false;
-            ring.transform.SetSiblingIndex(0);
-
-            TMP_Text number = node.button.GetComponentInChildren<TMP_Text>(true);
-            number.fontSize = 100;
-            number.color = Color.white;
-
-            for (int s = 0; s < node.stars.Length; s++)
-            {
-                RectTransform starRect = Rect(node.stars[s].transform);
-                starRect.sizeDelta = new Vector2(58f, 58f);
-                starRect.anchoredPosition = new Vector2((s - 1) * 62f, 135f);
-            }
-
-            Rect(node.lockIcon.transform).sizeDelta = new Vector2(110f, 110f);
-
-            if (node.button.GetComponent<PulseScale>() == null)
-            {
-                node.button.gameObject.AddComponent<PulseScale>().enabled = false;
-            }
-        }
-
-        foreach (Image dot in ui.trailPanel.GetComponentsInChildren<Image>(true).Where(i => i.name.StartsWith("dot ")))
-        {
-            Rect(dot.transform).sizeDelta = new Vector2(24f, 24f);
-            dot.color = new Color(1f, 1f, 1f, 0.85f);
-        }
-
-        Rect(ui.mtinyMarker).sizeDelta = new Vector2(170f, 175f);
-        // mTiny stands just above the mission to play next
-        ui.markerOffset = new Vector2(0f, 175f);
-
-        foreach (string corner in new[] { "close", "back" })
-        {
-            Rect(Find(scene, corner, root)).sizeDelta = new Vector2(140f, 140f);
-        }
 
         AddTouchFeedback(scene);
 
-        EditorUtility.SetDirty(ui);
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
     }
@@ -617,7 +493,7 @@ public static class UIEnhancer
         });
     }
 
-    private static bool InsideRoundedRect(float x, float y, float min, float max, float radius)
+    public static bool InsideRoundedRect(float x, float y, float min, float max, float radius)
     {
         float cx = Mathf.Clamp(x, min + radius, max - radius);
         float cy = Mathf.Clamp(y, min + radius, max - radius);
@@ -626,7 +502,7 @@ public static class UIEnhancer
                Vector2.Distance(new Vector2(x, y), new Vector2(cx, cy)) <= radius;
     }
 
-    private static void WriteIcon(string name, System.Func<float, float, bool> inside, int border = 0)
+    public static void WriteIcon(string name, System.Func<float, float, bool> inside, int border = 0)
     {
         const int size = 128;
         Texture2D tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
@@ -675,7 +551,7 @@ public static class UIEnhancer
     // HELPERS
     // =========================================================
 
-    private static Sprite LoadIcon(string name)
+    public static Sprite LoadIcon(string name)
     {
         return LoadSprite($"{IconFolder}/{name}.png");
     }

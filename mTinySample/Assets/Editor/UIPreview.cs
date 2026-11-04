@@ -29,12 +29,19 @@ public static class UIPreview
         GameObject missionPanel = FindPanel(menu, "missionPanel");
         missionPanel.SetActive(true);
 
-        StageMapUI ui = UnityEngine.Object.FindFirstObjectByType<StageMapUI>(FindObjectsInactive.Include);
-        ui.BackToStages();
-        Capture("2_stages");
+        // Uses the real saved progress (read-only) so previews never
+        // change the player's stars.
+        MissionMapUI ui = UnityEngine.Object.FindFirstObjectByType<MissionMapUI>(FindObjectsInactive.Include);
+        ui.Refresh();
+        ui.pathScroll.horizontalNormalizedPosition = 0f;
+        Capture("2_map_start");
 
-        ui.OpenStage(0);
-        Capture("3_trail");
+        ui.pathScroll.horizontalNormalizedPosition = 0.55f;
+        Capture("3_map_middle");
+
+        ui.OnNodePressed(0);
+        Capture("3b_mission_card");
+        ui.ClosePopup();
 
         // ---------------- MISSION ----------------
         Scene mission = EditorSceneManager.OpenScene("Assets/Scenes/Mission.unity", OpenSceneMode.Single);

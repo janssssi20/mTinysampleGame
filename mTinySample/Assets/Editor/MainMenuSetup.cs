@@ -10,7 +10,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 // Turns the Main Menu's three-button mission panel into stage cards plus
-// a five-node mission trail (StageMapUI). Safe to re-run.
+// a left-to-right mission map (MissionMapUI). Safe to re-run.
 public static class MainMenuSetup
 {
     private const string MainMenuPath = "Assets/Scenes/MainMenu.unity";
@@ -18,182 +18,458 @@ public static class MainMenuSetup
     public const string PadlockPath = "Assets/Image/ui/padlock.png";
     public const string StarPath = "Assets/Image/star (1).png";
 
-    private static readonly string[] StageNames = { "Easy", "Medium", "Hard" };
+    // =========================================================
+    // MISSION MAP
+    // =========================================================
+    // Replaces the old stage-card + trail panel with one screen:
+    // stage cards down the left (quick jump) and a left-to-right
+    // winding path of every mission with a trophy after each stage.
+    // =========================================================
 
-    private static readonly Vector2[] NodePositions =
+    private const float SlotSpacing = 200f;
+    private const float PathMargin = 150f;
+    private const float WaveHeight = 165f;
+
+    private static readonly Color[] StageColors =
     {
-        new Vector2(-420f, -170f),
-        new Vector2(-210f, 40f),
-        new Vector2(0f, -170f),
-        new Vector2(210f, 40f),
-        new Vector2(420f, -170f)
+        new Color(0.91f, 0.47f, 0.16f),
+        new Color(0.36f, 0.68f, 0.24f),
+        new Color(0.58f, 0.33f, 0.66f)
     };
 
-    [MenuItem("mTiny/Setup/Build Stage Map")]
-    public static void BuildStageMap()
+    private static readonly Color Ink = new Color(0.39f, 0.22f, 0.02f);
+    private static readonly Color Shadow = new Color(0f, 0f, 0f, 0.2f);
+
+    [MenuItem("mTiny/Setup/Build Mission Map")]
+    public static void BuildMissionMap()
     {
+        CreateMapIcons();
+
         Sprite padlock = EnsurePadlockSprite();
         Sprite star = LoadSprite(StarPath);
+        Sprite rounded = UIEnhancer.LoadIcon("ui_rounded");
+        Sprite ring = UIEnhancer.LoadIcon("ui_rounded_ring");
+        Sprite circle = UIEnhancer.LoadIcon("node_circle");
+        Sprite nodeRing = UIEnhancer.LoadIcon("node_ring");
+        Sprite trophy = UIEnhancer.LoadIcon("icon_trophy");
+        Sprite home = UIEnhancer.LoadIcon("icon_home");
+        Sprite play = UIEnhancer.LoadIcon("icon_play");
         Sprite dot = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/Knob.psd");
 
         Scene scene = EditorSceneManager.OpenScene(MainMenuPath, OpenSceneMode.Single);
+        MissionCatalog catalog = AssetDatabase.LoadAssetAtPath<MissionCatalog>(CatalogPath);
 
-        Transform root = Find(scene, "mainMenuMissionPanel").transform;
-        Transform cardsRow = Find(scene, "buttons", root) ?? Find(scene, "stageCards", root);
-        cardsRow.name = "stageCards";
+        Transform bg = Find(scene, "bg");
+        GameObject missionPanel = scene.GetRootGameObjects()
+            .SelectMany(r => r.GetComponentsInChildren<Transform>(true))
+            .First(t => t.name == "missionPanel" && t.GetComponent<Button>() == null).gameObject;
 
-        TMP_Text banner = Find(scene, "Panel", root).GetComponentInChildren<TMP_Text>(true);
-        Button close = Find(scene, "close", root).GetComponent<Button>();
+        TMP_FontAsset font = Find(scene, "Text (TMP)", Find(scene, "Explore", bg)).GetComponent<TMP_Text>().font;
+        Animator titleMtiny = Find(scene, "Image", bg).GetComponent<Animator>();
 
-        // mTiny art from the title screen
-        Animator titleMtiny = Find(scene, "Image", Find(scene, "bg").transform).GetComponent<Animator>();
-
-        StageMapUI ui = root.GetComponent<StageMapUI>() ?? root.gameObject.AddComponent<StageMapUI>();
-        ui.catalog = AssetDatabase.LoadAssetAtPath<MissionCatalog>(CatalogPath);
-        ui.stagePanel = cardsRow.gameObject;
-        ui.bannerText = banner;
-
-        // ---------------- STAGE CARDS ----------------
-        Button[] cards = cardsRow.GetComponentsInChildren<Button>(true)
-            .Where(b => b.transform.parent == cardsRow).ToArray();
-
-        ui.stageCards = new StageMapUI.StageCard[3];
-
+        // Card art from the old stage cards, before they go
+        Sprite[] cardArt = new Sprite[3];
+        string[] oldCards = { "easyCard", "mediumCard", "hardCard" };
         for (int i = 0; i < 3; i++)
         {
-            Button card = cards[i];
-            card.name = StageNames[i].ToLower() + "Card";
+            Transform old = Find(scene, oldCards[i], missionPanel.transform);
+            cardArt[i] = old != null ? old.GetComponent<Image>().sprite : rounded;
+        }
 
-            // Labels sit at different heights: top one is the title
-            TMP_Text[] labels = card.GetComponentsInChildren<TMP_Text>(true)
-                .OrderByDescending(t => ((RectTransform)t.transform).anchoredPosition.y).ToArray();
+        foreach (string oldName in new[] { "mainMenuMissionPanel", "missionMap" })
+        {
+            Transform old = Find(scene, oldName, missionPanel.transform);
+            if (old != null) Object.DestroyImmediate(old.gameObject);
+        }
 
-            labels[0].text = StageNames[i];
+        RectTransform root = NewRect("missionMap", missionPanel.transform);
+        Stretch(root);
+        MissionMapUI ui = root.gameObject.AddComponent<MissionMapUI>();
+        ui.catalog = catalog;
 
-            TMP_Text starsText = labels[1];
-            starsText.text = "0/15";
+        // Solid backdrop so the title screen never shows through
+        Image backdrop = root.gameObject.AddComponent<Image>();
+        backdrop.color = new Color(1f, 0.95f, 0.72f);
 
-            RectTransform starsRect = (RectTransform)starsText.transform;
-            Image starIcon = EnsureImage(card.transform, "starIcon", star,
-                starsRect.anchorMin, starsRect.anchoredPosition + new Vector2(-75f, 0f), new Vector2(40f, 40f));
-            starIcon.raycastTarget = false;
+        // ---------------- HEADER ----------------
+        RectTransform header = NewRect("header", root);
+        header.anchorMin = new Vector2(0f, 1f);
+        header.anchorMax = new Vector2(1f, 1f);
+        header.pivot = new Vector2(0.5f, 1f);
+        header.sizeDelta = new Vector2(0f, 130f);
+        header.anchoredPosition = Vector2.zero;
 
-            Image lockIcon = EnsureImage(card.transform, "lockIcon", padlock,
-                new Vector2(0.5f, 0.5f), new Vector2(0f, 50f), new Vector2(150f, 150f));
-            lockIcon.raycastTarget = false;
+        Button homeButton = CircleButton(header, "homeButton", circle, home, StageColors[0],
+            new Vector2(0f, 0.5f), new Vector2(95f, 0f), 110f);
+        UnityEventTools.AddBoolPersistentListener(homeButton.onClick, missionPanel.SetActive, false);
 
-            ClearListeners(card.onClick);
-            UnityEventTools.AddIntPersistentListener(card.onClick, ui.OnStagePressed, i);
+        Label(header, "title", font, "Missions", 72, Ink, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(700f, 110f));
 
-            ui.stageCards[i] = new StageMapUI.StageCard
+        Image totalStar = EnsureImage(header, "totalStar", star, new Vector2(1f, 0.5f), new Vector2(-290f, 0f), new Vector2(72f, 72f));
+        totalStar.raycastTarget = false;
+        ui.totalStarsText = Label(header, "totalStars", font, "0/45", 58, Ink, new Vector2(1f, 0.5f),
+            new Vector2(-150f, 0f), new Vector2(220f, 90f));
+        ui.totalStarsText.alignment = TextAlignmentOptions.MidlineLeft;
+
+        // ---------------- STAGE CARDS (LEFT) ----------------
+        string[] stageNames = { "EASY", "MEDIUM", "HARD" };
+        ui.stageCards = new MissionMapUI.StageCard[3];
+
+        for (int s = 0; s < 3; s++)
+        {
+            Vector2 cardPos = new Vector2(190f, -250f - s * 290f);
+
+            // Highlight ring sits behind the card (drawn first)
+            Image highlight = EnsureImage(root, $"cardHighlight{s}", ring, new Vector2(0f, 1f), cardPos, new Vector2(318f, 284f));
+            highlight.type = Image.Type.Sliced;
+            highlight.preserveAspect = false;
+            highlight.color = Color.white;
+            highlight.raycastTarget = false;
+
+            Image cardImage = EnsureImage(root, $"{stageNames[s].ToLower()}Card", cardArt[s], new Vector2(0f, 1f), cardPos, new Vector2(280f, 254f));
+            cardImage.preserveAspect = true;
+            Button card = cardImage.gameObject.AddComponent<Button>();
+            card.targetGraphic = cardImage;
+            UnityEventTools.AddIntPersistentListener(card.onClick, ui.OnStagePressed, s);
+
+            Image ribbon = EnsureImage(card.transform, "ribbon", rounded, new Vector2(0.5f, 1f), new Vector2(0f, -30f), new Vector2(230f, 62f));
+            ribbon.type = Image.Type.Sliced;
+            ribbon.preserveAspect = false;
+            ribbon.pixelsPerUnitMultiplier = 1.6f;
+            ribbon.color = StageColors[s];
+            ribbon.raycastTarget = false;
+            TMP_Text ribbonLabel = Label(ribbon.transform, "label", font, stageNames[s], 40, Color.white,
+                new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(220f, 60f));
+            ribbonLabel.enableAutoSizing = true;
+            ribbonLabel.fontSizeMin = 22;
+            ribbonLabel.fontSizeMax = 40;
+
+            Image cardStar = EnsureImage(card.transform, "starIcon", star, new Vector2(0.5f, 0f), new Vector2(-60f, 44f), new Vector2(46f, 46f));
+            cardStar.raycastTarget = false;
+            TMP_Text cardStars = Label(card.transform, "stars", font, "0/15", 38, Ink, new Vector2(0.5f, 0f),
+                new Vector2(30f, 44f), new Vector2(140f, 56f));
+            cardStars.alignment = TextAlignmentOptions.MidlineLeft;
+
+            Image cardLock = EnsureImage(card.transform, "lockIcon", padlock, new Vector2(0.5f, 0.5f), new Vector2(0f, 10f), new Vector2(120f, 120f));
+            cardLock.raycastTarget = false;
+
+            Image cardTrophy = EnsureImage(card.transform, "trophyIcon", trophy, new Vector2(1f, 1f), new Vector2(-28f, -88f), new Vector2(58f, 58f));
+            cardTrophy.raycastTarget = false;
+
+            ui.stageCards[s] = new MissionMapUI.StageCard
             {
                 button = card,
-                starsText = starsText,
-                lockIcon = lockIcon.gameObject
+                starsText = cardStars,
+                lockIcon = cardLock.gameObject,
+                trophyIcon = cardTrophy,
+                highlight = highlight.gameObject
             };
         }
 
-        // ---------------- TRAIL PANEL ----------------
-        GameObject oldTrail = Find(scene, "trailPanel", root)?.gameObject;
-        if (oldTrail != null) Object.DestroyImmediate(oldTrail);
+        // ---------------- PATH (SCROLLS LEFT TO RIGHT) ----------------
+        RectTransform scrollRect = NewRect("pathScroll", root);
+        scrollRect.anchorMin = Vector2.zero;
+        scrollRect.anchorMax = Vector2.one;
+        scrollRect.offsetMin = new Vector2(360f, 20f);
+        scrollRect.offsetMax = new Vector2(-20f, -140f);
+        Image scrollBg = scrollRect.gameObject.AddComponent<Image>();
+        scrollBg.color = new Color(1f, 1f, 1f, 0.001f);
+        ScrollRect scroll = scrollRect.gameObject.AddComponent<ScrollRect>();
+        scroll.horizontal = true;
+        scroll.vertical = false;
+        scroll.movementType = ScrollRect.MovementType.Elastic;
+        scroll.decelerationRate = 0.12f;
 
-        RectTransform trail = NewRect("trailPanel", root);
-        trail.anchorMin = Vector2.zero;
-        trail.anchorMax = Vector2.one;
-        trail.offsetMin = Vector2.zero;
-        trail.offsetMax = Vector2.zero;
-        trail.SetSiblingIndex(close.transform.GetSiblingIndex());
+        RectTransform viewport = NewRect("Viewport", scrollRect);
+        Stretch(viewport);
+        viewport.gameObject.AddComponent<RectMask2D>();
 
-        // Dotted path first so nodes draw on top of it
-        for (int n = 0; n + 1 < NodePositions.Length; n++)
+        int slots = StageMapModel.TrophySlot(catalog, MissionStage.Hard) + 1;
+        RectTransform content = NewRect("Content", viewport);
+        content.anchorMin = new Vector2(0f, 0f);
+        content.anchorMax = new Vector2(0f, 1f);
+        content.pivot = new Vector2(0f, 0.5f);
+        content.anchoredPosition = Vector2.zero;
+        content.sizeDelta = new Vector2(PathMargin * 2f + (slots - 1) * SlotSpacing, 0f);
+
+        scroll.viewport = viewport;
+        scroll.content = content;
+        ui.pathScroll = scroll;
+        ui.pathContent = content;
+
+        // Dotted road between neighbouring slots, drawn first
+        for (int slot = 0; slot + 1 < slots; slot++)
         {
-            Vector2 a = NodePositions[n];
-            Vector2 b = NodePositions[n + 1];
-            int dots = Mathf.FloorToInt(Vector2.Distance(a, b) / 40f);
-
-            for (int d = 1; d < dots; d++)
+            Vector2 a = SlotPosition(slot), b = SlotPosition(slot + 1);
+            for (int d = 1; d < 5; d++)
             {
-                Image dotImage = EnsureImage(trail, $"dot {n}-{d}", dot, new Vector2(0.5f, 0.5f),
-                    Vector2.Lerp(a, b, d / (float)dots), new Vector2(18f, 18f));
-                dotImage.color = new Color(1f, 1f, 1f, 0.7f);
-                dotImage.raycastTarget = false;
+                Image roadDot = EnsureImage(content, $"dot {slot}-{d}", dot, new Vector2(0f, 0.5f),
+                    Vector2.Lerp(a, b, d / 5f), new Vector2(26f, 26f));
+                roadDot.color = new Color(0.94f, 0.82f, 0.48f);
+                roadDot.raycastTarget = false;
             }
         }
 
-        TMP_FontAsset font = banner.font;
-        Sprite nodeSprite = close.GetComponent<Image>().sprite;
-
-        ui.nodes = new StageMapUI.TrailNode[5];
-
-        for (int n = 0; n < 5; n++)
+        // Stage labels where each stage's part of the path begins
+        string[] stageTitles = { "Easy · Learn to move", "Medium · Repeat", "Hard · Feelings and city" };
+        for (int s = 0; s < 3; s++)
         {
-            Image background = EnsureImage(trail, $"node{n + 1}", nodeSprite, new Vector2(0.5f, 0.5f),
-                NodePositions[n], new Vector2(150f, 150f));
-
-            Button button = background.gameObject.AddComponent<Button>();
-            button.targetGraphic = background;
-            UnityEventTools.AddIntPersistentListener(button.onClick, ui.OnNodePressed, n);
-
-            TextMeshProUGUI label = NewRect("label", background.transform).gameObject.AddComponent<TextMeshProUGUI>();
-            Stretch((RectTransform)label.transform);
-            label.font = font;
-            label.text = (n + 1).ToString();
-            label.fontSize = 70;
-            label.color = new Color(0.25f, 0.2f, 0.15f);
-            label.alignment = TextAlignmentOptions.Center;
+            Vector2 first = SlotPosition(StageMapModel.MissionSlot(catalog, catalog.IndicesInStage((MissionStage)s)[0]));
+            Image label = EnsureImage(content, $"stageLabel{s}", rounded, new Vector2(0f, 0.5f),
+                new Vector2(first.x + 150f, 360f), new Vector2(420f, 76f));
+            label.type = Image.Type.Sliced;
+            label.preserveAspect = false;
+            label.pixelsPerUnitMultiplier = 1.6f;
+            label.color = StageColors[s];
             label.raycastTarget = false;
+            TMP_Text stageText = Label(label.transform, "text", font, stageTitles[s], 38, Color.white, new Vector2(0.5f, 0.5f),
+                Vector2.zero, new Vector2(400f, 70f));
+            stageText.enableAutoSizing = true;
+            stageText.fontSizeMin = 24;
+            stageText.fontSizeMax = 38;
+        }
+
+        // Missions
+        ui.nodes = new MissionMapUI.PathNode[catalog.Count];
+        for (int i = 0; i < catalog.Count; i++)
+        {
+            Vector2 pos = SlotPosition(StageMapModel.MissionSlot(catalog, i));
+            int number = catalog.IndicesInStage(catalog.Get(i).stage).IndexOf(i) + 1;
+
+            RectTransform node = NewRect($"mission{i + 1}", content);
+            Place(node, new Vector2(0f, 0.5f), pos, new Vector2(150f, 150f));
+
+            // Chunky 3D button: dark base below a coloured face
+            Image baseImage = EnsureImage(node, "base", circle, new Vector2(0.5f, 0.5f), new Vector2(0f, -14f), new Vector2(150f, 150f));
+            baseImage.color = Shadow;
+            baseImage.raycastTarget = false;
+
+            Image face = EnsureImage(node, "face", circle, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(150f, 150f));
+            Image faceRing = EnsureImage(node, "ring", nodeRing, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(150f, 150f));
+            faceRing.raycastTarget = false;
+
+            TMP_Text label = Label(node, "number", font, number.ToString(), 80, Color.white, new Vector2(0.5f, 0.5f),
+                new Vector2(0f, 4f), new Vector2(140f, 120f));
 
             Image[] stars = new Image[3];
-
             for (int s = 0; s < 3; s++)
             {
-                stars[s] = EnsureImage(background.transform, $"star{s + 1}", star, new Vector2(0.5f, 0.5f),
-                    new Vector2((s - 1) * 45f, 100f), new Vector2(42f, 42f));
+                stars[s] = EnsureImage(node, $"star{s + 1}", star, new Vector2(0.5f, 0.5f),
+                    new Vector2((s - 1) * 52f, 108f), new Vector2(50f, 50f));
                 stars[s].raycastTarget = false;
             }
 
-            Image nodeLock = EnsureImage(background.transform, "lockIcon", padlock, new Vector2(0.5f, 0.5f),
-                Vector2.zero, new Vector2(90f, 90f));
+            Image nodeLock = EnsureImage(node, "lockIcon", padlock, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(84f, 84f));
             nodeLock.raycastTarget = false;
 
-            ui.nodes[n] = new StageMapUI.TrailNode
+            Button button = node.gameObject.AddComponent<Button>();
+            button.targetGraphic = face;
+            UnityEventTools.AddIntPersistentListener(button.onClick, ui.OnNodePressed, i);
+            node.gameObject.AddComponent<PulseScale>().enabled = false;
+
+            ui.nodes[i] = new MissionMapUI.PathNode
             {
                 button = button,
-                background = background,
+                face = face,
+                number = label,
                 stars = stars,
                 lockIcon = nodeLock.gameObject
             };
         }
 
-        // mTiny stands beside the next mission
-        Image marker = EnsureImage(trail, "mtinyMarker", titleMtiny.GetComponent<Image>().sprite,
-            new Vector2(0.5f, 0.5f), NodePositions[0] + ui.markerOffset, new Vector2(140f, 145f));
-        marker.preserveAspect = true;
+        // Trophies: one after each stage, coloured bronze / silver / gold
+        ui.trophies = new MissionMapUI.StageTrophy[3];
+        for (int s = 0; s < 3; s++)
+        {
+            Vector2 pos = SlotPosition(StageMapModel.TrophySlot(catalog, (MissionStage)s));
+
+            RectTransform cup = NewRect($"trophy{s + 1}", content);
+            Place(cup, new Vector2(0f, 0.5f), pos, new Vector2(150f, 150f));
+
+            Image cupBase = EnsureImage(cup, "base", rounded, new Vector2(0.5f, 0.5f), new Vector2(0f, -12f), new Vector2(140f, 140f));
+            cupBase.type = Image.Type.Sliced;
+            cupBase.preserveAspect = false;
+            cupBase.color = Shadow;
+            cupBase.raycastTarget = false;
+
+            Image plate = EnsureImage(cup, "plate", rounded, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(140f, 140f));
+            plate.type = Image.Type.Sliced;
+            plate.preserveAspect = false;
+            plate.color = new Color(1f, 0.97f, 0.86f);
+            plate.raycastTarget = false;
+
+            Image icon = EnsureImage(cup, "icon", trophy, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(104f, 104f));
+            icon.raycastTarget = false;
+
+            cup.gameObject.AddComponent<PulseScale>().enabled = false;
+
+            ui.trophies[s] = new MissionMapUI.StageTrophy { rect = cup, icon = icon };
+        }
+
+        // START bubble and mTiny at the next mission
+        Image bubble = EnsureImage(content, "startBubble", rounded, new Vector2(0f, 0.5f), Vector2.zero, new Vector2(170f, 64f));
+        bubble.type = Image.Type.Sliced;
+        bubble.preserveAspect = false;
+        bubble.pixelsPerUnitMultiplier = 1.6f;
+        bubble.color = Color.white;
+        bubble.raycastTarget = false;
+        Label(bubble.transform, "text", font, "START", 40, StageColors[0], new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(160f, 60f));
+        bubble.gameObject.AddComponent<PulseScale>().amount = 0.06f;
+        ui.startBubble = (RectTransform)bubble.transform;
+
+        Image marker = EnsureImage(content, "mtinyMarker", titleMtiny.GetComponent<Image>().sprite, new Vector2(0f, 0.5f),
+            Vector2.zero, new Vector2(130f, 134f));
         marker.raycastTarget = false;
         marker.gameObject.AddComponent<Animator>().runtimeAnimatorController = titleMtiny.runtimeAnimatorController;
         ui.mtinyMarker = (RectTransform)marker.transform;
 
-        // Back arrow mirrors the close button on the other corner
-        GameObject back = Object.Instantiate(close.gameObject, trail);
-        back.name = "back";
-        RectTransform backRect = (RectTransform)back.transform;
-        RectTransform closeRect = (RectTransform)close.transform;
-        backRect.anchorMin = new Vector2(0f, 1f);
-        backRect.anchorMax = new Vector2(0f, 1f);
-        backRect.anchoredPosition = new Vector2(-closeRect.anchoredPosition.x, closeRect.anchoredPosition.y);
-        back.GetComponentInChildren<TMP_Text>(true).text = "<";
-        Button backButton = back.GetComponent<Button>();
-        ClearListeners(backButton.onClick);
-        UnityEventTools.AddPersistentListener(backButton.onClick, ui.BackToStages);
+        // ---------------- CONFETTI ----------------
+        RectTransform confettiLayer = NewRect("confetti", root);
+        Stretch(confettiLayer);
+        ConfettiBurst burst = confettiLayer.gameObject.AddComponent<ConfettiBurst>();
+        burst.pieceSprite = rounded;
+        ui.confetti = burst;
 
-        ui.trailPanel = trail.gameObject;
-        trail.gameObject.SetActive(false);
+        // ---------------- MISSION CARD ----------------
+        RectTransform popup = NewRect("missionCard", root);
+        Stretch(popup);
+        Image dim = popup.gameObject.AddComponent<Image>();
+        dim.color = new Color(0f, 0f, 0f, 0.45f);
+        Button dimButton = popup.gameObject.AddComponent<Button>();
+        dimButton.transition = Selectable.Transition.None;
+        UnityEventTools.AddPersistentListener(dimButton.onClick, ui.ClosePopup);
+
+        Image cardBody = EnsureImage(popup, "card", rounded, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(640f, 470f));
+        cardBody.type = Image.Type.Sliced;
+        cardBody.preserveAspect = false;
+        cardBody.color = StageColors[0];
+
+        ui.popupStageText = Label(cardBody.transform, "stage", font, "Easy · Mission 1", 34, Color.white,
+            new Vector2(0.5f, 1f), new Vector2(0f, -55f), new Vector2(560f, 50f));
+        ui.popupTitleText = Label(cardBody.transform, "title", font, "Mission", 62, Color.white,
+            new Vector2(0.5f, 1f), new Vector2(0f, -125f), new Vector2(580f, 80f));
+        ui.popupTitleText.enableAutoSizing = true;
+        ui.popupTitleText.fontSizeMin = 36;
+        ui.popupTitleText.fontSizeMax = 62;
+
+        RectTransform hints = NewRect("hints", cardBody.transform);
+        Place(hints, new Vector2(0.5f, 0.5f), new Vector2(0f, 0f), new Vector2(560f, 120f));
+        HorizontalLayoutGroup hintLayout = hints.gameObject.AddComponent<HorizontalLayoutGroup>();
+        hintLayout.spacing = 26f;
+        hintLayout.childAlignment = TextAnchor.MiddleCenter;
+        hintLayout.childControlWidth = false;
+        hintLayout.childControlHeight = false;
+        hintLayout.childForceExpandWidth = false;
+        hintLayout.childForceExpandHeight = false;
+        ui.popupMoveHint = Hint(hints, "moveHint", "Layer 12");
+        ui.popupMultiplierHint = Hint(hints, "multiplierHint", "x2");
+        ui.popupEmotionHint = Hint(hints, "emotionHint", "Happy");
+
+        Image playBody = EnsureImage(cardBody.transform, "playButton", rounded, new Vector2(0.5f, 0f),
+            new Vector2(0f, 95f), new Vector2(440f, 120f));
+        playBody.type = Image.Type.Sliced;
+        playBody.preserveAspect = false;
+        playBody.color = Color.white;
+        Button playButton = playBody.gameObject.AddComponent<Button>();
+        playButton.targetGraphic = playBody;
+        UnityEventTools.AddPersistentListener(playButton.onClick, ui.OnPlayPressed);
+        Image playIcon = EnsureImage(playBody.transform, "icon", play, new Vector2(0.5f, 0.5f), new Vector2(-80f, 0f), new Vector2(64f, 64f));
+        playIcon.color = StageColors[0];
+        playIcon.raycastTarget = false;
+        Label(playBody.transform, "label", font, "Play", 56, StageColors[0], new Vector2(0.5f, 0.5f),
+            new Vector2(30f, 0f), new Vector2(200f, 90f));
+
+        ui.popup = popup.gameObject;
+        popup.gameObject.SetActive(false);
+
+        // Teacher reset refreshes this map
+        TeacherResetHold hold = Object.FindFirstObjectByType<TeacherResetHold>(FindObjectsInactive.Include);
+        if (hold != null)
+        {
+            hold.stageMap = ui;
+            EditorUtility.SetDirty(hold);
+        }
 
         EditorUtility.SetDirty(ui);
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
 
-        Debug.Log("[mTiny] Stage map built in MainMenu.");
+        Debug.Log("[mTiny] Mission map built in MainMenu.");
+    }
+
+    // Winding left-to-right path: x by slot, y on a gentle wave
+    private static Vector2 SlotPosition(int slot)
+    {
+        return new Vector2(PathMargin + slot * SlotSpacing, Mathf.Sin(slot * 0.85f) * WaveHeight - 30f);
+    }
+
+    private static Button CircleButton(Transform parent, string name, Sprite circle, Sprite icon, Color color,
+        Vector2 anchor, Vector2 position, float size)
+    {
+        Image face = EnsureImage(parent, name, circle, anchor, position, new Vector2(size, size));
+        face.color = color;
+        Button button = face.gameObject.AddComponent<Button>();
+        button.targetGraphic = face;
+        Image glyph = EnsureImage(face.transform, "icon", icon, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(size * 0.55f, size * 0.55f));
+        glyph.raycastTarget = false;
+        return button;
+    }
+
+    private static TMP_Text Label(Transform parent, string name, TMP_FontAsset font, string text, float size, Color color,
+        Vector2 anchor, Vector2 position, Vector2 box)
+    {
+        RectTransform rect = NewRect(name, parent);
+        Place(rect, anchor, position, box);
+        TextMeshProUGUI label = rect.gameObject.AddComponent<TextMeshProUGUI>();
+        label.font = font;
+        label.text = text;
+        label.fontSize = size;
+        label.color = color;
+        label.alignment = TextAlignmentOptions.Center;
+        label.enableWordWrapping = false;
+        label.raycastTarget = false;
+        return label;
+    }
+
+    private static GameObject Hint(Transform row, string name, string spriteName)
+    {
+        RectTransform rect = NewRect(name, row);
+        rect.sizeDelta = new Vector2(132f, 112f);
+        Image image = rect.gameObject.AddComponent<Image>();
+        image.sprite = AssetDatabase.FindAssets(spriteName + " t:Sprite")
+            .SelectMany(g => AssetDatabase.LoadAllAssetsAtPath(AssetDatabase.GUIDToAssetPath(g)).OfType<Sprite>())
+            .FirstOrDefault(sp => sp.name == spriteName);
+        image.preserveAspect = true;
+        image.raycastTarget = false;
+        return rect.gameObject;
+    }
+
+    private static void Place(RectTransform rect, Vector2 anchor, Vector2 position, Vector2 size)
+    {
+        rect.anchorMin = anchor;
+        rect.anchorMax = anchor;
+        rect.anchoredPosition = position;
+        rect.sizeDelta = size;
+    }
+
+    private static void CreateMapIcons()
+    {
+        UIEnhancer.WriteIcon("icon_trophy", (x, y) =>
+        {
+            float bowl = (x - 64f) * (x - 64f) / (34f * 34f) + (y - 112f) * (y - 112f) / (58f * 58f);
+            bool cup = y <= 112f && y >= 56f && bowl <= 1f;
+            bool rim = y > 104f && y <= 114f && x >= 30f && x <= 98f;
+            float hl = Vector2.Distance(new Vector2(x, y), new Vector2(30f, 92f));
+            float hr = Vector2.Distance(new Vector2(x, y), new Vector2(98f, 92f));
+            bool handles = (hl >= 10f && hl <= 18f && x < 34f) || (hr >= 10f && hr <= 18f && x > 94f);
+            bool stem = x >= 57f && x <= 71f && y >= 32f && y <= 60f;
+            bool baseBlock = x >= 38f && x <= 90f && y >= 14f && y <= 32f;
+            return cup || rim || handles || stem || baseBlock;
+        });
+
+        UIEnhancer.WriteIcon("ui_rounded_ring", (x, y) =>
+            UIEnhancer.InsideRoundedRect(x, y, 4f, 124f, 30f) && !UIEnhancer.InsideRoundedRect(x, y, 14f, 114f, 22f),
+            border: 40);
     }
 
     [MenuItem("mTiny/Setup/Add Teacher Reset")]
@@ -207,7 +483,7 @@ public static class MainMenuSetup
 
         TeacherResetHold hold = title.GetComponent<TeacherResetHold>() ?? title.gameObject.AddComponent<TeacherResetHold>();
         hold.catalog = AssetDatabase.LoadAssetAtPath<MissionCatalog>(CatalogPath);
-        hold.stageMap = Object.FindFirstObjectByType<StageMapUI>(FindObjectsInactive.Include);
+        hold.stageMap = Object.FindFirstObjectByType<MissionMapUI>(FindObjectsInactive.Include);
 
         // Confirm panel: a dimmed full-screen layer over the whole canvas
         Transform canvas = bg.parent;
