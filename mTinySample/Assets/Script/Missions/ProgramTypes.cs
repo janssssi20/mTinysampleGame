@@ -8,7 +8,10 @@ public enum CommandType
     TurnRight,
     StartFlag,
     RunFlag,
-    Emotion
+    Emotion,
+
+    // Added last: scenes store these as numbers
+    Note
 }
 
 public enum EmotionType
@@ -26,11 +29,24 @@ public enum EmotionType
     Theft
 }
 
+// The seven solfège notes of a C major scale, Do = C
+public enum NoteType
+{
+    Do,
+    Re,
+    Mi,
+    Fa,
+    Sol,
+    La,
+    Si
+}
+
 [System.Serializable]
 public class Command
 {
     public CommandType commandType;
     public EmotionType emotion;
+    public NoteType note;
     public int repeatCount;
 
     // Constructor for normal commands
@@ -49,6 +65,15 @@ public class Command
     {
         commandType = type;
         emotion = emotionType;
+        repeatCount = Mathf.Max(1, repeat);
+    }
+
+    // Constructor for note commands
+    public Command(NoteType noteType, int repeat = 1)
+    {
+        commandType = CommandType.Note;
+        emotion = EmotionType.Happy;
+        note = noteType;
         repeatCount = Mathf.Max(1, repeat);
     }
 }

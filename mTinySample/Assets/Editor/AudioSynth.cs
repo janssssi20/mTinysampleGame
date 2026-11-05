@@ -27,6 +27,14 @@ public static class AudioSynth
         Write("sfx_win", Win(), false);
         Write("sfx_cheer", Cheer(), false);
 
+        // Note blocks: Do Re Mi Fa Sol La Si = C5 D5 E5 F5 G5 A5 B5
+        int[] scale = { 72, 74, 76, 77, 79, 81, 83 };
+        string[] names = Enum.GetNames(typeof(NoteType));
+        for (int i = 0; i < names.Length; i++)
+        {
+            Write("note_" + names[i].ToLowerInvariant(), Note(scale[i]), false);
+        }
+
         Debug.Log("[mTiny] Music and sound effects written to " + Folder);
     }
 
@@ -241,6 +249,28 @@ public static class AudioSynth
             AddHat(buffer, i * 0.09f, 0.08f, random);
         }
         return Normalize(buffer, 0.8f);
+    }
+
+
+    // A clear xylophone-like note for the note blocks. The same bell
+    // as the music, so mTiny sings in the game's own voice.
+    private static float[] Note(int midi)
+    {
+        float[] buffer = Buffer(1.2f);
+        AddBell(buffer, 0f, Freq(midi), 0.5f, 0.28f);
+        FadeOut(buffer, 0.15f);
+        return Normalize(buffer, 0.8f);
+    }
+
+    // Short fade at the very end. AddBell wraps its tail to the start,
+    // which suits loops but must never click in a one-shot.
+    private static void FadeOut(float[] buffer, float seconds)
+    {
+        int count = Mathf.Min(buffer.Length, Mathf.RoundToInt(seconds * Rate));
+        for (int i = 0; i < count; i++)
+        {
+            buffer[buffer.Length - 1 - i] *= (float)i / count;
+        }
     }
 
 

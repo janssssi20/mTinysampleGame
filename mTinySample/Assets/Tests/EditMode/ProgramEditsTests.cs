@@ -81,4 +81,35 @@ public class ProgramEditsTests
         ProgramEdits.Undo(program);
         Assert.AreEqual(1, program[1].repeatCount);
     }
+
+    [Test]
+    public void NoteBlock_NeedsTheStartFlagFirst()
+    {
+        Assert.IsFalse(ProgramEdits.CanAddBlock(Program(), CommandType.Note));
+        Assert.IsTrue(ProgramEdits.CanAddBlock(Program(new Command(CommandType.StartFlag)), CommandType.Note));
+    }
+
+    [Test]
+    public void NoteCommand_RemembersItsNote()
+    {
+        Command sol = new Command(NoteType.Sol, 3);
+
+        Assert.AreEqual(CommandType.Note, sol.commandType);
+        Assert.AreEqual(NoteType.Sol, sol.note);
+        Assert.AreEqual(3, sol.repeatCount);
+    }
+
+    [Test]
+    public void Undo_RepeatedNote_DropsMultiplierThenNote()
+    {
+        List<Command> program = Program(
+            new Command(CommandType.StartFlag),
+            new Command(NoteType.Mi, 2));
+
+        Assert.AreEqual(1, ProgramEdits.Undo(program));
+        Assert.AreEqual(1, program[1].repeatCount);
+
+        Assert.AreEqual(1, ProgramEdits.Undo(program));
+        Assert.AreEqual(1, program.Count);
+    }
 }

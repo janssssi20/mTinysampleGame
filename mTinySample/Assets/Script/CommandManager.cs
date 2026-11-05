@@ -60,6 +60,14 @@ public class CommandManager : MonoBehaviour
     public Sprite playfulIcon;
 
     // =========================================================
+    // NOTE ICONS
+    // =========================================================
+
+    [Header("Note Icons")]
+    [Tooltip("One per note, in NoteType order: Do Re Mi Fa Sol La Si.")]
+    public Sprite[] noteIcons = new Sprite[7];
+
+    // =========================================================
     // EMOTION PANEL
     // =========================================================
 
@@ -502,6 +510,48 @@ public class CommandManager : MonoBehaviour
         lastBlockIsMultiplier = false;
 
         Debug.Log($"Added emotion: {emotionType} x1");
+    }
+
+
+    // =========================================================
+    // ADD NOTE COMMAND (Defaults to 1x initially)
+    // =========================================================
+
+    public void AddNote(NoteType note)
+    {
+        if (!CanEditProgram())
+        {
+            return;
+        }
+
+        if (!ProgramEdits.CanAddBlock(commandList, CommandType.Note))
+        {
+            Debug.LogWarning(
+                "Cannot add a note: press the start flag first."
+            );
+            return;
+        }
+
+        commandList.Add(new Command(note, 1));
+
+        // Let the child hear the note they picked
+        AudioManager.PlayNote(note);
+
+        int index = (int)note;
+        Sprite icon = noteIcons != null && index < noteIcons.Length ? noteIcons[index] : null;
+
+        if (uiManager != null && icon != null)
+        {
+            uiManager.AddVisualBlock(icon);
+        }
+        else if (icon == null)
+        {
+            Debug.LogWarning($"No icon assigned for note: {note}");
+        }
+
+        lastBlockIsMultiplier = false;
+
+        Debug.Log($"Added note: {note} x1");
     }
 
 

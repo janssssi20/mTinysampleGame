@@ -273,6 +273,24 @@ public void RunProgram()
 
 
                     // =========================================
+                    // NOTE
+                    // =========================================
+
+                    case CommandType.Note:
+
+                        Debug.Log(
+                            $"Executing Note: " +
+                            $"{cmd.note}"
+                        );
+
+                        yield return PlayNote(
+                            cmd.note
+                        );
+
+                        break;
+
+
+                    // =========================================
                     // START FLAG
                     // =========================================
 
@@ -937,6 +955,38 @@ public void RunProgram()
     // =========================================================
     // BUMPED EMOTION
     // =========================================================
+
+    // =========================================================
+    // PLAY NOTE
+    // =========================================================
+    // mTiny sings the note and does a little bounce in time.
+    // =========================================================
+
+    [Header("Notes")]
+    [Tooltip("Seconds each note block lasts.")]
+    public float noteDuration = 0.5f;
+
+    private IEnumerator PlayNote(NoteType note)
+    {
+        AudioManager.PlayNote(note);
+
+        Vector3 restScale = transform.localScale;
+        float t = 0f;
+
+        while (t < noteDuration)
+        {
+            t += Time.deltaTime;
+
+            // One quick bounce, then settle
+            float bounce = Mathf.Sin(Mathf.Clamp01(t / (noteDuration * 0.6f)) * Mathf.PI);
+            transform.localScale = restScale * (1f + 0.12f * bounce);
+
+            yield return null;
+        }
+
+        transform.localScale = restScale;
+    }
+
 
     private IEnumerator PlayBumped()
     {
