@@ -8,6 +8,9 @@ public class CommandButton : MonoBehaviour
     [Header("Emotion")]
     public EmotionType emotionType;
 
+    [Header("Note")]
+    public NoteType noteType;
+
     [Header("Button Icon")]
     public Sprite icon;
 
@@ -80,6 +83,24 @@ public class CommandButton : MonoBehaviour
         }
 
         CommandManager.Instance.AddEmotion(emotionType);
+    }
+
+    // =========================================================
+    // ADD NOTE
+    // =========================================================
+
+    public void AddNote()
+    {
+        if (CommandManager.Instance == null)
+        {
+            Debug.LogError(
+                "CommandButton: CommandManager.Instance is null!"
+            );
+
+            return;
+        }
+
+        CommandManager.Instance.AddNote(noteType);
     }
 
     // =========================================================

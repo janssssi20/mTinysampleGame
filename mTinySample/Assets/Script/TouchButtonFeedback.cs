@@ -12,6 +12,9 @@ public class TouchButtonFeedback : MonoBehaviour, IPointerDownHandler, IPointerU
     [Tooltip("How fast the button eases toward its target scale.")]
     public float speed = 18f;
 
+    [Tooltip("Off for buttons that make their own sound, like note blocks.")]
+    public bool tapSound = true;
+
     private Vector3 restScale;
     private float target = 1f;
     private float current = 1f;
@@ -50,7 +53,10 @@ public class TouchButtonFeedback : MonoBehaviour, IPointerDownHandler, IPointerU
         }
 
         target = pressedScale;
-        AudioManager.Play(Sfx.Tap);
+        if (tapSound)
+        {
+            AudioManager.Play(Sfx.Tap);
+        }
     }
 
     public void OnPointerUp(PointerEventData eventData)

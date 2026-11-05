@@ -28,6 +28,7 @@ public class AudioManager : MonoBehaviour
     private AudioSource music;
     private AudioSource effects;
     private AudioClip[] clips;
+    private AudioClip[] notes;
     private SoundSettings settings;
 
 
@@ -66,6 +67,14 @@ public class AudioManager : MonoBehaviour
             clips[i] = Resources.Load<AudioClip>(Folder + "sfx_" + names[i].ToLowerInvariant());
         }
 
+        string[] noteNames = System.Enum.GetNames(typeof(NoteType));
+        notes = new AudioClip[noteNames.Length];
+
+        for (int i = 0; i < noteNames.Length; i++)
+        {
+            notes[i] = Resources.Load<AudioClip>(Folder + "note_" + noteNames[i].ToLowerInvariant());
+        }
+
         ApplyMusic();
     }
 
@@ -83,10 +92,22 @@ public class AudioManager : MonoBehaviour
         }
     }
 
+    // Note blocks sing through the Sounds switch like other effects
+    public static void PlayNote(NoteType note)
+    {
+        if (Instance != null)
+        {
+            Instance.PlayClip(Instance.notes[(int)note]);
+        }
+    }
+
     private void PlayEffect(Sfx sound)
     {
-        AudioClip clip = clips[(int)sound];
+        PlayClip(clips[(int)sound]);
+    }
 
+    private void PlayClip(AudioClip clip)
+    {
         if (clip != null && settings.IsOn(SoundChannel.Effects))
         {
             effects.PlayOneShot(clip, effectsVolume);
