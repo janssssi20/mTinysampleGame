@@ -95,6 +95,41 @@ public static class ProgramEdits
         return type == CommandType.StartFlag ? !hasStartFlag : hasStartFlag;
     }
 
+    // Where a command's icons sit in the sequence bar: the block itself,
+    // then its multiplier icon when it repeats.
+    public static void IconSpan(List<Command> program, int commandIndex, out int first, out int count)
+    {
+        first = 0;
+
+        for (int i = 0; i < commandIndex && i < program.Count; i++)
+        {
+            first += program[i].repeatCount > 1 ? 2 : 1;
+        }
+
+        count = commandIndex < program.Count && program[commandIndex].repeatCount > 1 ? 2 : 1;
+    }
+
+    // Blocks the child placed, counted like a mission's intended solution:
+    // each block and each multiplier is one; the start flag is free.
+    public static int CountBlocks(List<Command> program)
+    {
+        int blocks = 0;
+
+        foreach (Command command in program)
+        {
+            if (command == null ||
+                command.commandType == CommandType.StartFlag ||
+                command.commandType == CommandType.RunFlag)
+            {
+                continue;
+            }
+
+            blocks += command.repeatCount > 1 ? 2 : 1;
+        }
+
+        return blocks;
+    }
+
     // Takes back the child's last block. A multiplier is always the last
     // icon after the block it repeats, so it is removed first.
     // Returns how many sequence-bar icons to remove (0 or 1).

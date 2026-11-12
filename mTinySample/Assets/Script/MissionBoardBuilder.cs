@@ -148,6 +148,14 @@ public class MissionBoardBuilder : MonoBehaviour
             instructionText.text = Current.instruction;
         }
 
+        // Stars count blocks against this mission's best answer
+        CommandManager commands = FindFirstObjectByType<CommandManager>(FindObjectsInactive.Include);
+
+        if (commands != null)
+        {
+            commands.SetBestBlocks(MissionSimulator.CountBlocks(Current.intendedSolution));
+        }
+
         if (titleText != null)
         {
             titleText.text = Current.title;

@@ -15,8 +15,8 @@ MonoBehaviour:
   missions:
   - id: E1
     stage: 0
-    title: Reach the flag
-    instruction: Walk up, turn right, and reach the flag!
+    title: Reach the Finish
+    instruction: Walk up, turn right, and reach the finish!
     requireMovement: 1
     requireMultiplier: 0
     requireEmotion: 0
@@ -51,7 +51,7 @@ MonoBehaviour:
   - id: E3
     stage: 0
     title: Show a feeling
-    instruction: Show a feeling, then race to the flag!
+    instruction: Show a feeling, then race to the finish!
     requireMovement: 1
     requireMultiplier: 1
     requireEmotion: 1
@@ -68,7 +68,7 @@ MonoBehaviour:
   - id: E4
     stage: 0
     title: Turn right
-    instruction: Help mTiny turn right to reach the flag!
+    instruction: Help mTiny turn right to reach the finish!
     requireMovement: 1
     requireMultiplier: 0
     requireEmotion: 0
@@ -120,7 +120,7 @@ MonoBehaviour:
   - id: M2
     stage: 1
     title: Turn left
-    instruction: Climb up, turn left, then zoom to the flag!
+    instruction: Climb up, turn left, then zoom to the finish!
     requireMovement: 1
     requireMultiplier: 1
     requireEmotion: 0
@@ -140,7 +140,7 @@ MonoBehaviour:
   - id: M3
     stage: 1
     title: Up and over
-    instruction: Up, over, and back down to the flag!
+    instruction: Up, over, and back down to the finish!
     requireMovement: 1
     requireMultiplier: 1
     requireEmotion: 0
@@ -181,7 +181,7 @@ MonoBehaviour:
   - id: M5
     stage: 1
     title: Climb
-    instruction: Climb the stairs all the way to the flag!
+    instruction: Climb the stairs all the way to the finish!
     requireMovement: 1
     requireMultiplier: 1
     requireEmotion: 0

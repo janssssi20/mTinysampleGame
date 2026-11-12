@@ -42,6 +42,19 @@ public class RobotController : MonoBehaviour
     // stops after the current step finishes.
     private bool stopRequested = false;
 
+    // Set when mTiny bumps a wall or leaves the road. The program stops
+    // there and the block that caused it is shown to the child.
+    private bool bumped = false;
+    private int currentCommand = -1;
+
+    // Size the robot returns to after a note bounce or a Reset
+    private Vector3 baseScale;
+
+    // Depth of the mat mTiny drives on. It spawns on the start tile, so
+    // it keeps that depth (just above it) instead of floating at 0, which
+    // only looked right from straight above.
+    private float planeZ;
+
 
     // =========================================================
     // AWAKE
@@ -50,6 +63,8 @@ public class RobotController : MonoBehaviour
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
+        baseScale = transform.localScale;
+        planeZ = transform.position.z - 0.02f;
 
         if (rb != null)
         {
@@ -138,11 +153,9 @@ public void RunProgram()
         $"{commandManager.commandList.Count} commands."
     );
 
-    // =========================================================
-    // HIDE COMMAND SEQUENCE UI
-    // =========================================================
-
-    commandManager.HideSequenceUI();
+    // The sequence bar stays up so the running block can glow;
+    // editing is already locked while the program runs.
+    commandManager.ClearHighlight();
 
     // =========================================================
     // START COMMAND EXECUTION
@@ -170,12 +183,19 @@ public void RunProgram()
         // can never modify the list being executed.
         Command[] program = commandManager.commandList.ToArray();
 
-        foreach (Command cmd in program)
+        bumped = false;
+
+        for (int index = 0; index < program.Length; index++)
         {
-            if (stopRequested)
+            Command cmd = program[index];
+
+            if (stopRequested || bumped)
             {
                 break;
             }
+
+            currentCommand = index;
+            commandManager.HighlightCommand(index);
 
             if (cmd == null)
             {
@@ -198,137 +218,14 @@ public void RunProgram()
             );
 
             // Execute command according to multiplier
-            for (int i = 0; i < repeatCount && !stopRequested; i++)
+            for (int i = 0; i < repeatCount && !stopRequested && !bumped; i++)
             {
                 Debug.Log(
                     $"Execution {i + 1}/{repeatCount}: " +
                     $"{cmd.commandType}"
                 );
 
-                switch (cmd.commandType)
-                {
-                    // =========================================
-                    // FORWARD
-                    // =========================================
-
-                    case CommandType.Forward:
-
-                        Debug.Log(
-                            "Executing Forward"
-                        );
-
-                        yield return MoveForward();
-
-                        break;
-
-
-                    // =========================================
-                    // TURN LEFT
-                    // =========================================
-
-                    case CommandType.TurnLeft:
-
-                        Debug.Log(
-                            "Executing Turn Left"
-                        );
-
-                        yield return TurnLeft();
-
-                        break;
-
-
-                    // =========================================
-                    // TURN RIGHT
-                    // =========================================
-
-                    case CommandType.TurnRight:
-
-                        Debug.Log(
-                            "Executing Turn Right"
-                        );
-
-                        yield return TurnRight();
-
-                        break;
-
-
-                    // =========================================
-                    // EMOTION
-                    // =========================================
-
-                    case CommandType.Emotion:
-
-                        Debug.Log(
-                            $"Executing Emotion: " +
-                            $"{cmd.emotion}"
-                        );
-
-
-
-                        yield return ShowEmotion(
-                            cmd.emotion
-                        );
-
-                        break;
-
-
-                    // =========================================
-                    // NOTE
-                    // =========================================
-
-                    case CommandType.Note:
-
-                        Debug.Log(
-                            $"Executing Note: " +
-                            $"{cmd.note}"
-                        );
-
-                        yield return PlayNote(
-                            cmd.note
-                        );
-
-                        break;
-
-
-                    // =========================================
-                    // START FLAG
-                    // =========================================
-
-                    case CommandType.StartFlag:
-
-                        Debug.Log(
-                            "Start Flag"
-                        );
-
-                        break;
-
-
-                    // =========================================
-                    // RUN FLAG
-                    // =========================================
-
-                    case CommandType.RunFlag:
-
-                        Debug.Log(
-                            "Run Flag"
-                        );
-
-                        break;
-
-
-                    // =========================================
-                    // UNKNOWN
-                    // =========================================
-
-                    default:
-
-                        Debug.LogWarning(
-                            $"Unknown command type: " +
-                            $"{cmd.commandType}"
-                        );
-
-                        break;
-                }
+                yield return RunStep(cmd);
 
                 // =================================================
                 // DELAY BETWEEN REPEATED COMMANDS
@@ -348,6 +245,23 @@ public void RunProgram()
             // Goal was reached; GoalZone handles the result
             stopRequested = false;
 
+            commandManager.ClearHighlight();
+
+            FinishExecution();
+
+            yield break;
+        }
+
+        // =====================================================
+        // FREE PLAY (EXPLORE): A PROGRAM JUST ENDS
+        // =====================================================
+        // There is nothing to fail in Explore, so a song or a drive
+        // never ends with a sad face.
+
+        if (commandManager.freePlay)
+        {
+            commandManager.ClearHighlight();
+
             FinishExecution();
 
             yield break;
@@ -358,17 +272,198 @@ public void RunProgram()
         // =====================================================
 
         Debug.Log(
-            "Program finished without reaching the goal."
+            bumped
+                ? "Program stopped at a bump."
+                : "Program finished without reaching the goal."
         );
 
-        AudioManager.Play(Sfx.Oops);
+        // A bump already played its own "uh-oh" and bump face
+        if (!bumped)
+        {
+            AudioManager.Play(Sfx.Oops);
 
-        yield return ShowEmotion(EmotionType.Sad);
+            yield return ShowEmotion(EmotionType.Sad);
+        }
 
         FinishExecution();
 
-        // Let the player edit the program or press Reset
-        commandManager.ShowSequenceUI();
+        // Keep the block that caused the bump lit, then offer Try again
+        if (bumped)
+        {
+            commandManager.HighlightCommand(currentCommand, problem: true);
+        }
+        else
+        {
+            commandManager.ClearHighlight();
+        }
+
+        commandManager.ShowTryAgain(bumped ? TryAgainReason.Bumped : TryAgainReason.TooShort);
+    }
+
+
+    // =========================================================
+    // RUN ONE STEP
+    // =========================================================
+    // One action of a block. Programs repeat it for multipliers;
+    // the remote runs it straight away.
+    // =========================================================
+
+    private IEnumerator RunStep(Command cmd)
+    {
+        switch (cmd.commandType)
+        {
+            // =========================================
+            // FORWARD
+            // =========================================
+
+            case CommandType.Forward:
+
+                Debug.Log(
+                    "Executing Forward"
+                );
+
+                yield return MoveForward();
+
+                break;
+
+
+            // =========================================
+            // TURN LEFT
+            // =========================================
+
+            case CommandType.TurnLeft:
+
+                Debug.Log(
+                    "Executing Turn Left"
+                );
+
+                yield return TurnLeft();
+
+                break;
+
+
+            // =========================================
+            // TURN RIGHT
+            // =========================================
+
+            case CommandType.TurnRight:
+
+                Debug.Log(
+                    "Executing Turn Right"
+                );
+
+                yield return TurnRight();
+
+                break;
+
+
+            // =========================================
+            // EMOTION
+            // =========================================
+
+            case CommandType.Emotion:
+
+                Debug.Log(
+                    $"Executing Emotion: " +
+                    $"{cmd.emotion}"
+                );
+
+
+
+                yield return ShowEmotion(
+                    cmd.emotion
+                );
+
+                break;
+
+
+            // =========================================
+            // NOTE
+            // =========================================
+
+            case CommandType.Note:
+
+                Debug.Log(
+                    $"Executing Note: " +
+                    $"{cmd.note}"
+                );
+
+                yield return PlayNote(
+                    cmd.note
+                );
+
+                break;
+
+
+            // =========================================
+            // START FLAG
+            // =========================================
+
+            case CommandType.StartFlag:
+
+                Debug.Log(
+                    "Start Flag"
+                );
+
+                break;
+
+
+            // =========================================
+            // RUN FLAG
+            // =========================================
+
+            case CommandType.RunFlag:
+
+                Debug.Log(
+                    "Run Flag"
+                );
+
+                break;
+
+
+            // =========================================
+            // UNKNOWN
+            // =========================================
+
+            default:
+
+                Debug.LogWarning(
+                    $"Unknown command type: " +
+                    $"{cmd.commandType}"
+                );
+
+                break;
+        }
+    }
+
+
+    // =========================================================
+    // REMOTE CONTROL
+    // =========================================================
+    // Explore's remote drives mTiny one action at a time, like the
+    // real mTiny pen: no start flag, no program, no Run button.
+    // =========================================================
+
+    public bool RunSingle(Command cmd)
+    {
+        if (isExecuting || cmd == null)
+        {
+            return false;
+        }
+
+        StartCoroutine(ExecuteSingle(cmd));
+        return true;
+    }
+
+    private IEnumerator ExecuteSingle(Command cmd)
+    {
+        isExecuting = true;
+        bumped = false;
+
+        yield return RunStep(cmd);
+
+        isExecuting = false;
+        bumped = false;
     }
 
 
@@ -414,6 +509,13 @@ public void RunProgram()
                 "CommandManager is missing!"
             );
 
+            yield break;
+        }
+
+        // The emotion card above the game (the board can't cover it)
+        if (commandManager.emotionStage != null)
+        {
+            yield return commandManager.emotionStage.Play(emotion);
             yield break;
         }
 
@@ -606,6 +708,8 @@ public void RunProgram()
                 $"WALL DETECTED: {wallHit.collider.name}"
             );
 
+            bumped = true;
+
             yield return PlayBumped();
 
             // Robot stays where it is
@@ -627,6 +731,8 @@ public void RunProgram()
                 $"Blocked! No walkable tile found " +
                 $"at {targetPos}"
             );
+
+            bumped = true;
 
             yield return PlayBumped();
 
@@ -875,6 +981,11 @@ public void RunProgram()
 
         stopRequested = false;
 
+        bumped = false;
+
+        // A note bounce cut short must not leave mTiny bigger
+        transform.localScale = baseScale;
+
         FinishExecution();
 
         ClearVelocity();
@@ -893,7 +1004,7 @@ public void RunProgram()
         Vector3 position,
         Quaternion rotation)
     {
-        position.z = 0f;
+        position.z = planeZ;
 
         transform.SetPositionAndRotation(
             position,
@@ -944,9 +1055,9 @@ public void RunProgram()
     {
         Vector3 p = transform.position;
 
-        if (p.z != 0f)
+        if (p.z != planeZ)
         {
-            p.z = 0f;
+            p.z = planeZ;
 
             transform.position = p;
         }
@@ -970,7 +1081,7 @@ public void RunProgram()
     {
         AudioManager.PlayNote(note);
 
-        Vector3 restScale = transform.localScale;
+        Vector3 restScale = baseScale;
         float t = 0f;
 
         while (t < noteDuration)
@@ -998,6 +1109,12 @@ public void RunProgram()
                 "Cannot play Bumped: CommandManager is missing!"
             );
 
+            yield break;
+        }
+
+        if (commandManager.emotionStage != null)
+        {
+            yield return commandManager.emotionStage.PlayBumped();
             yield break;
         }
 

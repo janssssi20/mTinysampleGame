@@ -176,12 +176,29 @@ public class MissionManager : MonoBehaviour
             return;
         }
 
-        // No failed panel: robot looks sad, then goes back to the start so
-        // the child can add the missing block and try again
-        StartCoroutine(ReturnToStartAfterFail());
+        // No failed panel: robot looks sad, then the Try again card says
+        // which block is missing. Kept as a handle so Reset can cancel it.
+        CancelFeedback();
+        failFeedback = StartCoroutine(ShowFailFeedback(ReasonFor(reason)));
     }
 
-    private System.Collections.IEnumerator ReturnToStartAfterFail()
+    private TryAgainReason ReasonFor(string missingRequirement)
+    {
+        if (requireMultiplier && !multiplierUsed) return TryAgainReason.MissingMultiplier;
+        if (requireEmotion && !emotionUsed) return TryAgainReason.MissingEmotion;
+        if (requireMovement && !movementUsed) return TryAgainReason.MissingMovement;
+        return TryAgainReason.TooShort;
+    }
+
+    private Coroutine failFeedback;
+
+    // True while the sad face for a missing block is showing; Run waits
+    public bool IsShowingFeedback
+    {
+        get { return failFeedback != null; }
+    }
+
+    private System.Collections.IEnumerator ShowFailFeedback(TryAgainReason reason)
     {
         RobotController robot = FindFirstObjectByType<RobotController>();
 
@@ -190,16 +207,29 @@ public class MissionManager : MonoBehaviour
             yield return robot.ShowEmotion(EmotionType.Sad);
         }
 
-        CommandButtonManager buttons = FindFirstObjectByType<CommandButtonManager>();
-
-        if (buttons != null)
-        {
-            buttons.ReturnRobotToStart();
-        }
+        failFeedback = null;
 
         if (CommandManager.Instance != null)
         {
-            CommandManager.Instance.ShowSequenceUI();
+            CommandManager.Instance.ShowTryAgain(reason);
+        }
+    }
+
+    // Called by Reset and Try again: a sad face that is still running
+    // must never move mTiny or stop the next run.
+    public void CancelFeedback()
+    {
+        if (failFeedback == null)
+        {
+            return;
+        }
+
+        StopCoroutine(failFeedback);
+        failFeedback = null;
+
+        if (CommandManager.Instance != null && CommandManager.Instance.emotionPanel != null)
+        {
+            CommandManager.Instance.emotionPanel.SetActive(false);
         }
     }
 

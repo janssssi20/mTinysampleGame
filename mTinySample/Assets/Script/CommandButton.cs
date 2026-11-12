@@ -127,6 +127,7 @@ public class CommandButton : MonoBehaviour
 
         // Ignore extra presses: no Run icon, no second run
         if (robot.IsExecuting() ||
+            (MissionManager.Instance != null && MissionManager.Instance.IsShowingFeedback) ||
             commandManager == null ||
             !commandManager.IsGameStarted() ||
             commandManager.IsGameFinished() ||
@@ -139,9 +140,15 @@ public class CommandButton : MonoBehaviour
             return;
         }
 
-        if (uiManager != null && icon != null)
+        // Every run starts from the start tile, so "fix one block and
+        // run again" replays the program from where it should begin.
+        // (The Run button no longer adds an icon to the sequence bar:
+        // it isn't a block, and Undo must only ever remove blocks.)
+        CommandButtonManager buttons = FindFirstObjectByType<CommandButtonManager>();
+
+        if (buttons != null)
         {
-            uiManager.AddVisualBlock(icon);
+            buttons.ReturnRobotToStart();
         }
 
         if (MissionManager.Instance != null)

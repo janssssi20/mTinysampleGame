@@ -9,9 +9,6 @@ public class TouchButtonFeedback : MonoBehaviour, IPointerDownHandler, IPointerU
     [Tooltip("Scale while pressed, relative to the resting scale.")]
     public float pressedScale = 0.9f;
 
-    [Tooltip("How fast the button eases toward its target scale.")]
-    public float speed = 18f;
-
     [Tooltip("Off for buttons that make their own sound, like note blocks.")]
     public bool tapSound = true;
 
@@ -31,17 +28,33 @@ public class TouchButtonFeedback : MonoBehaviour, IPointerDownHandler, IPointerU
     {
         target = 1f;
         current = 1f;
+        velocity = 0f;
         transform.localScale = restScale;
     }
 
+    // A soft spring: it squashes in fast and springs back with a little
+    // wobble past full size, which feels squishy to small hands
+    [Tooltip("Springiness of the bounce back; higher = wobblier.")]
+    public float stiffness = 420f;
+    public float damping = 18f;
+
+    private float velocity;
+
     private void Update()
     {
-        if (Mathf.Approximately(current, target))
+        if (Mathf.Abs(current - target) < 0.0005f && Mathf.Abs(velocity) < 0.001f)
         {
+            if (current != target)
+            {
+                current = target;
+                transform.localScale = restScale * current;
+            }
             return;
         }
 
-        current = Mathf.MoveTowards(current, target, speed * Time.unscaledDeltaTime);
+        float dt = Mathf.Min(Time.unscaledDeltaTime, 0.033f);
+        velocity += (stiffness * (target - current) - damping * velocity) * dt;
+        current += velocity * dt;
         transform.localScale = restScale * current;
     }
 

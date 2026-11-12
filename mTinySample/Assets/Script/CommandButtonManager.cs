@@ -78,6 +78,9 @@ public class CommandButtonManager : MonoBehaviour
     {
         started = false;
 
+        if (MissionManager.Instance != null)
+            MissionManager.Instance.CancelFeedback();
+
         SetCommandButtonsInteractable(false);
 
         if (startButton != null)
@@ -96,6 +99,8 @@ public class CommandButtonManager : MonoBehaviour
 
             commandManager.ResetAfterFinish();
             commandManager.ShowSequenceUI();
+            commandManager.ClearHighlight();
+            commandManager.HideTryAgain();
             commandManager.ClearCommands();
         }
 
@@ -126,10 +131,27 @@ public class CommandButtonManager : MonoBehaviour
             pulse.enabled = pulsing;
     }
 
+    // Explore's own maps move the start tile
+    public void SetStart(Vector3 position, Quaternion rotation)
+    {
+        startPos = position;
+        startRot = rotation;
+        ReturnRobotToStart();
+    }
+
     // Puts the robot back on the start tile and re-arms the goal, but
     // keeps the program so the child can fix it and run again.
     public void ReturnRobotToStart()
     {
+        if (MissionManager.Instance != null)
+            MissionManager.Instance.CancelFeedback();
+
+        if (commandManager != null)
+        {
+            commandManager.ClearHighlight();
+            commandManager.HideTryAgain();
+        }
+
         if (robot != null)
         {
             robot.StopProgram();

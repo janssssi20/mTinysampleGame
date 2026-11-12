@@ -52,6 +52,18 @@ public class GoalZone : MonoBehaviour
         goalTriggered = true;
 
         // -------------------------------------------------
+        // EXPLORE (FREE PLAY)
+        // -------------------------------------------------
+        // Reaching the goal is just a happy moment: mTiny keeps
+        // going, and nothing locks or shows a finish panel.
+
+        if (CommandManager.Instance != null && CommandManager.Instance.freePlay)
+        {
+            AudioManager.Play(Sfx.Win);
+            return;
+        }
+
+        // -------------------------------------------------
         // STOP THE ROBOT
         // -------------------------------------------------
         // Finish the current step, skip remaining commands.

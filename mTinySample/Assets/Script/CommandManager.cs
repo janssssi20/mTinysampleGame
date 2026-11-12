@@ -74,6 +74,8 @@ public class CommandManager : MonoBehaviour
     [Header("Emotion Panel")]
     public GameObject emotionPanel;
     public Animator emotionAnimator;
+    [Tooltip("Plays emotions and special-tile stories on a card above the game.")]
+    public EmotionStage emotionStage;
 
     // =========================================================
     // INSTRUCTION PANEL
@@ -81,6 +83,21 @@ public class CommandManager : MonoBehaviour
 
     [Header("Instruction Panel")]
     public GameObject instructionPanel;
+
+    // =========================================================
+    // PLAY MODE
+    // =========================================================
+
+    [Header("Play Mode")]
+    [Tooltip("Explore: no timer, no stars, no sad ending, never locks.")]
+    public bool freePlay = false;
+
+    [Tooltip("Shown after a run that didn't reach the flag.")]
+    public TryAgainBanner tryAgainBanner;
+
+    // Fewest blocks that solve this mission (from its intended
+    // solution). When set, stars count blocks instead of time.
+    private int bestBlocks = 0;
 
     // =========================================================
     // TIMER
@@ -243,6 +260,8 @@ public class CommandManager : MonoBehaviour
         // ---------------------------------------------------------
 
         ClearGeneratedStars();
+
+        HideTryAgain();
     }
 
 
@@ -398,6 +417,15 @@ public class CommandManager : MonoBehaviour
         if (timerText == null)
         {
             return;
+        }
+
+        // No clock for Explore or block-starred missions: young
+        // children shouldn't feel rushed
+        bool showTimer = !freePlay && bestBlocks <= 0;
+
+        if (timerText.gameObject.activeSelf != showTimer)
+        {
+            timerText.gameObject.SetActive(showTimer);
         }
 
         timerText.text =
@@ -913,6 +941,11 @@ public class CommandManager : MonoBehaviour
             return false;
         }
 
+        // The child is fixing their program: the red block and the
+        // Try again card from the last run no longer apply
+        ClearHighlight();
+        HideTryAgain();
+
         return true;
     }
 
@@ -959,18 +992,19 @@ public class CommandManager : MonoBehaviour
 
         gameStarted = false;
 
-        // Calculate stars
-        int stars =
-            CalculateStarRating(
-                elapsedTime
-            );
+        // Calculate stars: by blocks used when the mission knows its
+        // best answer, otherwise by time (the old single-mission scenes)
+        int blocksUsed = ProgramEdits.CountBlocks(commandList);
 
-        // Display final time
+        int stars = bestBlocks > 0
+            ? StarRules.ForBlocks(blocksUsed, bestBlocks)
+            : CalculateStarRating(elapsedTime);
+
         if (finishTimeText != null)
         {
-            finishTimeText.text =
-                "Time: " +
-                FormatTime(elapsedTime);
+            finishTimeText.text = bestBlocks > 0
+                ? "Blocks: " + blocksUsed
+                : "Time: " + FormatTime(elapsedTime);
         }
 
         // Generate star prefabs
@@ -1204,6 +1238,65 @@ public class CommandManager : MonoBehaviour
         Debug.Log(
             "Game timer reset."
         );
+    }
+
+
+    // =========================================================
+    // BEST BLOCKS
+    // =========================================================
+    // Set by MissionBoardBuilder for the mission being played.
+    // =========================================================
+
+    public void SetBestBlocks(int blocks)
+    {
+        bestBlocks = blocks;
+        UpdateTimerUI();
+    }
+
+
+    // =========================================================
+    // RUN HIGHLIGHT
+    // =========================================================
+
+    public void HighlightCommand(int commandIndex, bool problem = false)
+    {
+        if (uiManager == null || commandIndex < 0 || commandIndex >= commandList.Count)
+        {
+            return;
+        }
+
+        int first, count;
+        ProgramEdits.IconSpan(commandList, commandIndex, out first, out count);
+        uiManager.Highlight(first, count, problem);
+    }
+
+    public void ClearHighlight()
+    {
+        if (uiManager != null)
+        {
+            uiManager.ClearHighlight();
+        }
+    }
+
+
+    // =========================================================
+    // TRY AGAIN
+    // =========================================================
+
+    public void ShowTryAgain(TryAgainReason reason)
+    {
+        if (tryAgainBanner != null && !freePlay)
+        {
+            tryAgainBanner.Show(reason);
+        }
+    }
+
+    public void HideTryAgain()
+    {
+        if (tryAgainBanner != null)
+        {
+            tryAgainBanner.Hide();
+        }
     }
 
 
