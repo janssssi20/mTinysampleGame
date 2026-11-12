@@ -112,4 +112,12 @@ public class ProgramEditsTests
         Assert.AreEqual(1, ProgramEdits.Undo(program));
         Assert.AreEqual(1, program.Count);
     }
+
+    [Test]
+    public void NoteScale_EndsOnHighDo()
+    {
+        // Scenes store notes as numbers: new notes go after HighDo
+        Assert.AreEqual(8, System.Enum.GetValues(typeof(NoteType)).Length);
+        Assert.AreEqual(7, (int)NoteType.HighDo);
+    }
 }

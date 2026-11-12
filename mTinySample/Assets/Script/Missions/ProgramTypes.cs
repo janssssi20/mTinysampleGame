@@ -29,7 +29,8 @@ public enum EmotionType
     Theft
 }
 
-// The seven solfège notes of a C major scale, Do = C
+// The solfège notes of a C major scale, Do = C, plus the Do an octave
+// up so a scale can finish "...La Si Do" on the right note
 public enum NoteType
 {
     Do,
@@ -38,7 +39,8 @@ public enum NoteType
     Fa,
     Sol,
     La,
-    Si
+    Si,
+    HighDo
 }
 
 [System.Serializable]

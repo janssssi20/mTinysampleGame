@@ -64,8 +64,8 @@ public class CommandManager : MonoBehaviour
     // =========================================================
 
     [Header("Note Icons")]
-    [Tooltip("One per note, in NoteType order: Do Re Mi Fa Sol La Si.")]
-    public Sprite[] noteIcons = new Sprite[7];
+    [Tooltip("One per note, in NoteType order: Do Re Mi Fa Sol La Si HighDo.")]
+    public Sprite[] noteIcons = new Sprite[8];
 
     // =========================================================
     // EMOTION PANEL

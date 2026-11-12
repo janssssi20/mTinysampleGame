@@ -27,8 +27,8 @@ public static class AudioSynth
         Write("sfx_win", Win(), false);
         Write("sfx_cheer", Cheer(), false);
 
-        // Note blocks: Do Re Mi Fa Sol La Si = C5 D5 E5 F5 G5 A5 B5
-        int[] scale = { 72, 74, 76, 77, 79, 81, 83 };
+        // Note blocks: Do Re Mi Fa Sol La Si HighDo = C5 D5 E5 F5 G5 A5 B5 C6
+        int[] scale = { 72, 74, 76, 77, 79, 81, 83, 84 };
         string[] names = Enum.GetNames(typeof(NoteType));
         for (int i = 0; i < names.Length; i++)
         {
