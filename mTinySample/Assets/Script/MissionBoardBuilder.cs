@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
@@ -57,6 +58,25 @@ public class MissionBoardBuilder : MonoBehaviour
     public float tileZ = 90f;
 
     // =========================================================
+    // FIT THE TOP VIEW
+    // =========================================================
+    // Big boards (up to 7 x 4 tiles) must sit between the code bar
+    // at the top and the block palette on the right. The board is
+    // centred in that free area, and the camera zooms out a little
+    // only when a board would not fit.
+    // =========================================================
+
+    [Header("Fit The Top View")]
+    public bool fitCamera = true;
+    [Tooltip("Share of the screen height taken by the header and code bar.")]
+    public float headerShare = 0.2f;
+    [Tooltip("Share of the screen width taken by the block palette.")]
+    public float paletteShare = 0.28f;
+    [Tooltip("Room kept around the board, in world units.")]
+    public float fitMargin = 1.1f;
+    public float minCameraSize = 5f;
+
+    // =========================================================
     // SCENE REFERENCES
     // =========================================================
 
@@ -79,6 +99,7 @@ public class MissionBoardBuilder : MonoBehaviour
     public GameObject movementHint;
     public GameObject multiplierHint;
     public GameObject emotionHint;
+    public GameObject soundHint;
 
     // =========================================================
     // BLOCK BUTTONS
@@ -88,6 +109,35 @@ public class MissionBoardBuilder : MonoBehaviour
     public GameObject[] movementBlocks;
     public GameObject[] multiplierBlocks;
     public GameObject[] emotionBlocks;
+    public GameObject[] soundBlocks;
+
+    // =========================================================
+    // MARKED TILES (Stages 3-5)
+    // =========================================================
+    // A badge on a road tile: mTiny must show a feeling (smiley)
+    // or play music (note) while standing there.
+    // =========================================================
+
+    [Header("Marked Tiles")]
+    public Sprite cueFeelingSprite;
+    public Sprite cueMusicSprite;
+    public Sprite cueDoneSprite;
+    public Sprite cueGlowSprite;
+    [Tooltip("Badge size, as a share of a tile.")]
+    public float cueSize = 0.5f;
+    [Tooltip("Badge offset from the tile centre (towards the top-right corner), as a share of a tile.")]
+    public Vector2 cueOffset = new Vector2(0.24f, 0.24f);
+
+    [Tooltip("Move the marked tiles to new random road tiles each time a level starts.")]
+    public bool randomizeCues = true;
+
+    public static MissionBoardBuilder Instance { get; private set; }
+
+    // This play's marked tiles, and the shortest program for them
+    public List<MissionCue> ActiveCues { get; private set; } = new List<MissionCue>();
+    public int BestBlocks { get; private set; }
+
+    private readonly List<CueMarker> cueMarkers = new List<CueMarker>();
 
     public MissionDefinition Current { get; private set; }
     public int CurrentIndex { get; private set; }
@@ -95,6 +145,8 @@ public class MissionBoardBuilder : MonoBehaviour
 
     private void Awake()
     {
+        Instance = this;
+
         if (catalog == null || catalog.Count == 0)
         {
             Debug.LogError("MissionBoardBuilder: Mission catalog is missing or empty!");
@@ -117,6 +169,15 @@ public class MissionBoardBuilder : MonoBehaviour
         Current = catalog.Get(index);
 
         ClearBoard();
+        FitCamera();
+
+        // New random places for the marked tiles each time the level starts
+        ActiveCues = randomizeCues
+            ? MissionSolver.RandomCues(Current, new System.Random())
+            : new List<MissionCue>(Current.cues);
+        BestBlocks = ActiveCues.Count > 0
+            ? MissionSimulator.CountBlocks(MissionSolver.Solve(Current, ActiveCues))
+            : MissionSimulator.CountBlocks(Current.intendedSolution);
 
         bool city = IsCityBoard;
 
@@ -129,6 +190,7 @@ public class MissionBoardBuilder : MonoBehaviour
         }
 
         SpawnTile(city ? cityGoalTilePrefab : goalTilePrefab, Current.goal, "Goal");
+        SpawnCueMarkers();
 
         if (gameManager != null)
         {
@@ -140,6 +202,7 @@ public class MissionBoardBuilder : MonoBehaviour
             missionManager.requireMovement = Current.requireMovement;
             missionManager.requireMultiplier = Current.requireMultiplier;
             missionManager.requireEmotion = Current.requireEmotion;
+            missionManager.requireSound = Current.requireSound;
             missionManager.requireFinish = true;
         }
 
@@ -153,7 +216,7 @@ public class MissionBoardBuilder : MonoBehaviour
 
         if (commands != null)
         {
-            commands.SetBestBlocks(MissionSimulator.CountBlocks(Current.intendedSolution));
+            commands.SetBestBlocks(BestBlocks);
         }
 
         if (titleText != null)
@@ -164,10 +227,12 @@ public class MissionBoardBuilder : MonoBehaviour
         SetHint(movementHint, Current.requireMovement);
         SetHint(multiplierHint, Current.requireMultiplier);
         SetHint(emotionHint, Current.requireEmotion);
+        SetHint(soundHint, Current.requireSound);
 
         SetBlocksVisible(movementBlocks, (Current.visibleBlocks & BlockGroups.Movement) != 0);
         SetBlocksVisible(multiplierBlocks, (Current.visibleBlocks & BlockGroups.Multiplier) != 0);
         SetBlocksVisible(emotionBlocks, (Current.visibleBlocks & BlockGroups.Emotion) != 0);
+        SetBlocksVisible(soundBlocks, (Current.visibleBlocks & BlockGroups.Sound) != 0);
 
         Debug.Log($"Mission {Current.id} ({Current.title}) built.");
 
@@ -192,6 +257,115 @@ public class MissionBoardBuilder : MonoBehaviour
     // =========================================================
 
     public bool IsCityBoard => Current != null && Current.cityTiles.Count > 0;
+
+    private void SpawnCueMarkers()
+    {
+        cueMarkers.Clear();
+        if (ActiveCues == null) return;
+
+        foreach (MissionCue cue in ActiveCues)
+        {
+            if (cue == null) continue;
+
+            GameObject marker = new GameObject("Cue " + cue.kind + " " + cue.cell);
+            marker.transform.SetParent(boardParent, false);
+            Vector3 centre = CellToWorld(cue.cell);
+            marker.transform.position = centre + new Vector3(cueOffset.x * cellSize, cueOffset.y * cellSize, -0.5f);
+            marker.transform.localScale = Vector3.one * cueSize * cellSize;
+
+            SpriteRenderer glow = new GameObject("glow").AddComponent<SpriteRenderer>();
+            glow.transform.SetParent(marker.transform, false);
+            glow.transform.localScale = Vector3.one * 1.7f;
+            glow.sprite = cueGlowSprite;
+            glow.sortingOrder = 1;
+
+            SpriteRenderer badge = new GameObject("badge").AddComponent<SpriteRenderer>();
+            badge.transform.SetParent(marker.transform, false);
+            badge.sortingOrder = 2;
+
+            CueMarker cm = marker.AddComponent<CueMarker>();
+            cm.badge = badge;
+            cm.glow = glow;
+            cm.kind = cue.kind;
+            cm.cell = cue.cell;
+            cm.waitingSprite = cue.kind == CueKind.Music ? cueMusicSprite : cueFeelingSprite;
+            cm.doneSprite = cueDoneSprite;
+            cm.ResetCue();
+            cueMarkers.Add(cm);
+        }
+    }
+
+    // A new run starts: every marked tile waits again
+    public void ResetCues()
+    {
+        foreach (CueMarker marker in cueMarkers)
+        {
+            if (marker != null) marker.ResetCue();
+        }
+    }
+
+    // mTiny showed a feeling or played music here: tick the marked tile
+    // it stands on, if that tile asks for this kind of block
+    public void CuePlayed(CueKind kind, Vector3 robotPosition)
+    {
+        foreach (CueMarker marker in cueMarkers)
+        {
+            if (marker == null || marker.Done || marker.kind != kind) continue;
+
+            Vector3 tile = CellToWorld(marker.cell);
+            Vector2 offset = new Vector2(robotPosition.x - tile.x, robotPosition.y - tile.y);
+
+            if (offset.magnitude < cellSize * 0.5f)
+            {
+                marker.Complete();
+            }
+        }
+    }
+
+    // The first marked tile not yet done (false when all are done)
+    public bool MissingCue(out CueKind kind)
+    {
+        foreach (CueMarker marker in cueMarkers)
+        {
+            if (marker != null && !marker.Done)
+            {
+                kind = marker.kind;
+                return true;
+            }
+        }
+
+        kind = CueKind.Feeling;
+        return false;
+    }
+
+    private void FitCamera()
+    {
+        Camera cam = Camera.main;
+        if (!fitCamera || cam == null || !cam.orthographic)
+        {
+            return;
+        }
+
+        Vector2Int min = Current.start, max = Current.start;
+        foreach (Vector2Int cell in MissionRoute.Cells(Current))
+        {
+            min = Vector2Int.Min(min, cell);
+            max = Vector2Int.Max(max, cell);
+        }
+
+        float width = (max.x - min.x + 1) * cellSize + fitMargin;
+        float height = (max.y - min.y + 1) * cellSize + fitMargin;
+        float aspect = cam.aspect > 0f ? cam.aspect : 16f / 9f;
+
+        float size = Mathf.Max(minCameraSize,
+            height / (2f * (1f - headerShare)),
+            width / (2f * (1f - paletteShare) * aspect));
+        cam.orthographicSize = size;
+
+        // Middle of the free area left of the palette and below the header
+        Vector3 c = cam.transform.position;
+        boardCenter = new Vector2(c.x - paletteShare * size * aspect, c.y - headerShare * size);
+    }
 
     private GameObject RoadFor(Vector2Int cell)
     {

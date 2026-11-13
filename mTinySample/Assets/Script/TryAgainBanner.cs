@@ -8,7 +8,10 @@ public enum TryAgainReason
     TooShort,
     MissingMovement,
     MissingMultiplier,
-    MissingEmotion
+    MissingEmotion,
+    MissingSound,
+    MissedFeelingTile,
+    MissedMusicTile
 }
 
 // Friendly card after a run that didn't finish the mission. It says what
@@ -36,6 +39,9 @@ public class TryAgainBanner : MonoBehaviour
             case TryAgainReason.MissingMovement: return "Add a block that moves mTiny, then try again.";
             case TryAgainReason.MissingMultiplier: return "You made it! Now use a x2 block and try again.";
             case TryAgainReason.MissingEmotion: return "You made it! Now add a feeling block and try again.";
+            case TryAgainReason.MissingSound: return "You made it! Now add a music block and try again.";
+            case TryAgainReason.MissedFeelingTile: return "Almost! Stop on the smiley tile and show a feeling there.";
+            case TryAgainReason.MissedMusicTile: return "Almost! Stop on the music tile and play music there.";
             default: return "Almost! Add more blocks to reach the flag.";
         }
     }

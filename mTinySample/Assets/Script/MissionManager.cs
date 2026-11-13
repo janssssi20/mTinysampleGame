@@ -13,6 +13,7 @@ public class MissionManager : MonoBehaviour
     public bool requireMovement = true;
     public bool requireMultiplier = true;
     public bool requireEmotion = true;
+    public bool requireSound;
     public bool requireFinish = true;
 
     [Header("Mission UI")]
@@ -22,6 +23,7 @@ public class MissionManager : MonoBehaviour
     private bool movementUsed;
     private bool multiplierUsed;
     private bool emotionUsed;
+    private bool soundUsed;
     private bool finishReached;
 
     private bool missionCompleted;
@@ -47,6 +49,7 @@ public class MissionManager : MonoBehaviour
         movementUsed = false;
         multiplierUsed = false;
         emotionUsed = false;
+        soundUsed = false;
         finishReached = false;
         missionCompleted = false;
 
@@ -71,6 +74,7 @@ public class MissionManager : MonoBehaviour
         movementUsed = false;
         multiplierUsed = false;
         emotionUsed = false;
+        soundUsed = false;
 
         foreach (Command command in CommandManager.Instance.commandList)
         {
@@ -98,6 +102,12 @@ public class MissionManager : MonoBehaviour
             {
                 emotionUsed = true;
             }
+
+            // Sound requirement
+            if (command.commandType == CommandType.Note)
+            {
+                soundUsed = true;
+            }
         }
 
         Debug.Log(
@@ -105,6 +115,7 @@ public class MissionManager : MonoBehaviour
             $"Movement={movementUsed}, " +
             $"Multiplier={multiplierUsed}, " +
             $"Emotion={emotionUsed}, " +
+            $"Sound={soundUsed}, " +
             $"Finish={finishReached}"
         );
     }
@@ -158,6 +169,17 @@ public class MissionManager : MonoBehaviour
             return "Use an emotion block.";
         }
 
+        if (requireSound && !soundUsed)
+        {
+            return "Use a music block.";
+        }
+
+        CueKind cue;
+        if (MissionBoardBuilder.Instance != null && MissionBoardBuilder.Instance.MissingCue(out cue))
+        {
+            return cue == CueKind.Music ? "Play music on the music tile." : "Show a feeling on the smiley tile.";
+        }
+
         if (requireFinish && !finishReached)
         {
             return "Reach the finish.";
@@ -186,6 +208,12 @@ public class MissionManager : MonoBehaviour
     {
         if (requireMultiplier && !multiplierUsed) return TryAgainReason.MissingMultiplier;
         if (requireEmotion && !emotionUsed) return TryAgainReason.MissingEmotion;
+        if (requireSound && !soundUsed) return TryAgainReason.MissingSound;
+        CueKind cue;
+        if (MissionBoardBuilder.Instance != null && MissionBoardBuilder.Instance.MissingCue(out cue))
+        {
+            return cue == CueKind.Music ? TryAgainReason.MissedMusicTile : TryAgainReason.MissedFeelingTile;
+        }
         if (requireMovement && !movementUsed) return TryAgainReason.MissingMovement;
         return TryAgainReason.TooShort;
     }

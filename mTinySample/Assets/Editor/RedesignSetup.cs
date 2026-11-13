@@ -46,6 +46,54 @@ public static class RedesignSetup
     [MenuItem("mTiny/Setup/Apply Redesign")]
     public static void ApplyAll()
     {
+        PrepareAssets();
+
+        MainMenu();
+        PlayScene("Assets/Scenes/Mission.unity", isWorld: false);
+        PlayScene("Assets/Scenes/World.unity", isWorld: true);
+
+        Debug.Log("[mTiny] Redesign applied.");
+    }
+
+    // Themes only the rebuilt mission map; the title screen and settings
+    // keep any hand-made tweaks
+    public static void ApplyMainMenu()
+    {
+        PrepareAssets();
+        Scene scene = EditorSceneManager.OpenScene("Assets/Scenes/MainMenu.unity", OpenSceneMode.Single);
+        Transform map = Find(scene, "missionMap");
+        ThemeTree(map);
+        ThemeMissionMap(scene);
+        Finish(scene);
+    }
+
+    // Adds the Music group, sound hint and wider palette to an already
+    // redesigned Mission scene (for the stages with sound blocks)
+    public static void ApplyMissionMusic()
+    {
+        PrepareAssets();
+        Scene scene = EditorSceneManager.OpenScene("Assets/Scenes/Mission.unity", OpenSceneMode.Single);
+
+        RectTransform palette = (RectTransform)Find(scene, "commandblock_group");
+        palette.sizeDelta = new Vector2(500f, palette.sizeDelta.y);
+        // (built in the final style: no re-theming, which would turn the
+        // coloured group headings to ink)
+        GroupPalette(scene, palette, false);
+
+        Transform canvas = Find(scene, "header").parent;
+        BuildGoalCard(scene, canvas);
+
+        // The wider palette takes more room: the board moves left a little
+        MissionBoardBuilder builder = UnityEngine.Object.FindFirstObjectByType<MissionBoardBuilder>(FindObjectsInactive.Include);
+        builder.boardCenter = new Vector2(-2.1f, builder.boardCenter.y);
+        EditorUtility.SetDirty(builder);
+
+        Finish(scene);
+        Debug.Log("[mTiny] Mission palette has music.");
+    }
+
+    private static void PrepareAssets()
+    {
         title = EnsureFont(FontFolder + "/Fredoka.ttf", FontFolder + "/Fredoka SDF.asset");
         body = EnsureFont(FontFolder + "/Andika-Regular.ttf", FontFolder + "/Andika SDF.asset");
 
@@ -59,12 +107,6 @@ public static class RedesignSetup
         EditorUtility.SetDirty(body.material);
         AssetDatabase.SaveAssets();
         WriteShapes();
-
-        MainMenu();
-        PlayScene("Assets/Scenes/Mission.unity", isWorld: false);
-        PlayScene("Assets/Scenes/World.unity", isWorld: true);
-
-        Debug.Log("[mTiny] Redesign applied.");
     }
 
 
@@ -115,35 +157,7 @@ public static class RedesignSetup
         Chunky(gear.GetComponent<Image>(), Color.white, circle: true);
         gear.Find("icon").GetComponent<Image>().color = Ink;
 
-        // ---------------- MISSION MAP ----------------
-        MissionMapUI map = UnityEngine.Object.FindFirstObjectByType<MissionMapUI>(FindObjectsInactive.Include);
-        map.stageColors = new[] { Go, Move, Music };
-        map.doneColor = Move;
-        map.nextColor = Repeat;
-        map.lockedColor = Locked;
-        map.lockedCardTint = Hex("E6E3EF");
-        EditorUtility.SetDirty(map);
-
-        // (the title's Missions button is also called missionPanel)
-        Image mapBg = Find(scene, "missionMap").parent.GetComponent<Image>();
-        mapBg.sprite = null;
-        mapBg.color = Cream;
-        Find(scene, "missionMap").GetComponent<Image>().color = Cream;
-
-        string[] cards = { "easyCard", "mediumCard", "hardCard" };
-        Color[] stageColors = { Go, Move, Music };
-        for (int i = 0; i < cards.Length; i++)
-        {
-            // The cards keep their pictures; only the ribbon takes the stage colour
-            Transform card = Find(scene, cards[i]);
-            card.Find("ribbon").GetComponent<Image>().color = stageColors[i];
-        }
-
-        Chunky(Find(scene, "homeButton").GetComponent<Image>(), Orange, circle: true);
-
-        Transform popupCard = Find(scene, "card", Find(scene, "missionCard"));
-        Chunky(popupCard.GetComponent<Image>(), Go);
-        AddPop(popupCard);
+        ThemeMissionMap(scene);
 
         // ---------------- SETTINGS ----------------
         Transform settingsBox = Find(scene, "box", Find(scene, "settingsPanel"));
@@ -171,6 +185,45 @@ public static class RedesignSetup
 
         Finish(scene);
     }
+
+    // The mission map: stage colours, chunky cards and labels
+    private static void ThemeMissionMap(Scene scene)
+    {
+        MissionMapUI map = UnityEngine.Object.FindFirstObjectByType<MissionMapUI>(FindObjectsInactive.Include);
+        Color[] stageColors = { Go, Move, Repeat, Feel, Music };
+        map.stageColors = stageColors;
+        map.doneColor = Move;
+        map.nextColor = Repeat;
+        map.lockedColor = Locked;
+        map.lockedCardTint = Hex("E6E3EF");
+        EditorUtility.SetDirty(map);
+
+        // (the title's Missions button is also called missionPanel)
+        Image mapBg = Find(scene, "missionMap").parent.GetComponent<Image>();
+        mapBg.sprite = null;
+        mapBg.color = Cream;
+        Find(scene, "missionMap").GetComponent<Image>().color = Cream;
+
+        for (int i = 0; i < MissionStages.Count; i++)
+        {
+            // Each stage card: chunky white card, a tile in the stage colour
+            Transform card = Find(scene, "stageCard" + i);
+            if (card == null) continue;
+            Chunky(card.GetComponent<Image>(), Color.white);
+            Image tile = card.Find("iconTile").GetComponent<Image>();
+            Chunky(tile, stageColors[i]);
+            card.Find("stageNo").GetComponent<TMP_Text>().color = TextColor(Darker(stageColors[i]));
+            Transform label = Find(scene, "stageLabel" + i);
+            if (label != null) Chunky(label.GetComponent<Image>(), stageColors[i]);
+        }
+
+        Chunky(Find(scene, "homeButton").GetComponent<Image>(), Orange, circle: true);
+
+        Transform popupCard = Find(scene, "card", Find(scene, "missionCard"));
+        Chunky(popupCard.GetComponent<Image>(), Go);
+        AddPop(popupCard);
+    }
+
 
     private static void StyleTitleButton(Transform button, Color color, string label)
     {
@@ -247,7 +300,7 @@ public static class RedesignSetup
 
         // ---------------- PALETTE ----------------
         RectTransform palette = (RectTransform)Find(scene, "commandblock_group");
-        palette.sizeDelta = new Vector2(isWorld ? 500f : 384f, palette.sizeDelta.y);
+        palette.sizeDelta = new Vector2(500f, palette.sizeDelta.y);
         Image tray = Find(scene, "bg", palette).GetComponent<Image>();
         Chunky(tray, Color.white);
         GroupPalette(scene, palette, isWorld);
@@ -442,34 +495,43 @@ public static class RedesignSetup
     private static void GroupPalette(Scene scene, RectTransform palette, bool isWorld)
     {
         Transform content = Find(scene, "Content", palette);
-        if (content.Find("group_Move") != null) return;
 
         GridLayoutGroup oldGrid = content.GetComponent<GridLayoutGroup>();
         if (oldGrid != null) UnityEngine.Object.DestroyImmediate(oldGrid);
 
-        VerticalLayoutGroup column = content.gameObject.AddComponent<VerticalLayoutGroup>();
-        column.padding = new RectOffset(4, 4, 8, 8);
-        column.spacing = 6f;
-        column.childControlWidth = true;
-        column.childControlHeight = true;
-        column.childForceExpandHeight = false;
-        column.childForceExpandWidth = true;
+        if (content.GetComponent<VerticalLayoutGroup>() == null)
+        {
+            VerticalLayoutGroup column = content.gameObject.AddComponent<VerticalLayoutGroup>();
+            column.padding = new RectOffset(4, 4, 8, 8);
+            column.spacing = 6f;
+            column.childControlWidth = true;
+            column.childControlHeight = true;
+            column.childForceExpandHeight = false;
+            column.childForceExpandWidth = true;
+        }
 
-        int columns = isWorld ? 4 : 3;
+        // Four columns: every family fits without scrolling
+        const int columns = 4;
+        foreach (GridLayoutGroup existing in content.GetComponentsInChildren<GridLayoutGroup>(true))
+        {
+            existing.constraintCount = columns;
+            EditorUtility.SetDirty(existing);
+        }
         var groups = new List<(string name, string label, string icon, Color ink, string[] blocks)>
         {
             ("Move", "Move", "icon_g_move", MoveInk, new[] { "startFlag", "forward", "left", "right" }),
             ("Repeat", "Repeat", "icon_g_repeat", RepeatInk, new[] { "2x multiplier", "3x multiplier", "4x multiplier", "5x multiplier" }),
             ("Feelings", "Feelings", "icon_g_feel", FeelInk, new[] { "happy", "sad", "angry", "surprised", "dizzy", "sleepy", "playful" }),
+            ("Music", "Music", "icon_music", MusicInk,
+                new[] { "noteDo", "noteRe", "noteMi", "noteFa", "noteSol", "noteLa", "noteSi", "noteHighDo" }),
         };
-        if (isWorld)
-        {
-            groups.Add(("Music", "Music", "icon_music", MusicInk,
-                new[] { "noteDo", "noteRe", "noteMi", "noteFa", "noteSol", "noteLa", "noteSi", "noteHighDo" }));
-        }
 
         foreach (var g in groups)
         {
+            // Already built, or no blocks of this family in this scene
+            if (content.Find("group_" + g.name) != null) continue;
+            if (!g.blocks.Any(b => content.Cast<Transform>().Any(c => c.name == b))) continue;
+
             GameObject group = new GameObject("group_" + g.name, typeof(RectTransform));
             group.transform.SetParent(content, false);
             VerticalLayoutGroup v = group.AddComponent<VerticalLayoutGroup>();
@@ -554,11 +616,13 @@ public static class RedesignSetup
         goal.card = card.gameObject;
         goal.title = Text(card, "title", "Mission", 46, Ink, title, new Vector2(0.5f, 1f), new Vector2(0f, -46f), new Vector2(360f, 64f));
         goal.title.fontStyle = FontStyles.Bold;
-        goal.moveHint = Img(card, "moveHint", cm.forwardIcon, new Vector2(0f, 1f), new Vector2(64f, -126f), new Vector2(84f, 72f)).gameObject;
-        goal.multiplierHint = Img(card, "multiplierHint", cm.multiplier2xIcon, new Vector2(0f, 1f), new Vector2(150f, -126f), new Vector2(84f, 72f)).gameObject;
-        goal.emotionHint = Img(card, "emotionHint", cm.happyIcon, new Vector2(0f, 1f), new Vector2(236f, -126f), new Vector2(84f, 72f)).gameObject;
-        Text(card, "arrow", "→", 44, Ink, title, new Vector2(1f, 1f), new Vector2(-92f, -124f), new Vector2(40f, 60f));
-        goal.goalTile = Img(card, "goalTile", null, new Vector2(1f, 1f), new Vector2(-44f, -126f), new Vector2(70f, 70f));
+        goal.moveHint = Img(card, "moveHint", cm.forwardIcon, new Vector2(0f, 1f), new Vector2(50f, -126f), new Vector2(72f, 62f)).gameObject;
+        goal.multiplierHint = Img(card, "multiplierHint", cm.multiplier2xIcon, new Vector2(0f, 1f), new Vector2(122f, -126f), new Vector2(72f, 62f)).gameObject;
+        goal.emotionHint = Img(card, "emotionHint", cm.happyIcon, new Vector2(0f, 1f), new Vector2(194f, -126f), new Vector2(72f, 62f)).gameObject;
+        Sprite note = cm.noteIcons != null && cm.noteIcons.Length > 0 ? cm.noteIcons[0] : null;
+        goal.soundHint = Img(card, "soundHint", note, new Vector2(0f, 1f), new Vector2(266f, -126f), new Vector2(72f, 62f)).gameObject;
+        Text(card, "arrow", "→", 40, Ink, title, new Vector2(1f, 1f), new Vector2(-76f, -124f), new Vector2(32f, 60f));
+        goal.goalTile = Img(card, "goalTile", null, new Vector2(1f, 1f), new Vector2(-36f, -126f), new Vector2(58f, 58f));
         goal.parkGoal = MainMenuSetup.LoadSprite("Assets/Image/Tilemaps2 assets/Layer 2.png");
         goal.cityGoal = MainMenuSetup.LoadSprite("Assets/Image/Tilemaps1/Layer 15.png");
         goal.instruction = Text(card, "instruction", "Reach the flag!", 34, Ink, body, new Vector2(0.5f, 1f), new Vector2(0f, -232f), new Vector2(360f, 110f));
@@ -643,6 +707,14 @@ public static class RedesignSetup
     {
         foreach (GameObject root in scene.GetRootGameObjects())
         {
+            ThemeTree(root.transform);
+        }
+    }
+
+    private static void ThemeTree(Transform root)
+    {
+        if (root == null) return;
+        {
             foreach (TMP_Text t in root.GetComponentsInChildren<TMP_Text>(true))
             {
                 bool isBody = BodyNames.Contains(t.name);
@@ -704,6 +776,11 @@ public static class RedesignSetup
 
         result = c;
         return false;
+    }
+
+    private static Color Darker(Color c)
+    {
+        return Color.Lerp(c, Ink, 0.35f);
     }
 
     private static bool IsWhite(Color c) { return c.r > 0.95f && c.g > 0.95f && c.b > 0.95f; }

@@ -84,20 +84,20 @@ public class MissionProgressTests
     public void MediumStage_LockedUntilE5Won()
     {
         WinRange(0, 3);
-        Assert.IsFalse(progress.IsStageUnlocked(MissionStage.Medium));
+        Assert.IsFalse(progress.IsStageUnlocked(MissionStage.Stage2));
 
         progress.RecordWin(4, 2);
-        Assert.IsTrue(progress.IsStageUnlocked(MissionStage.Medium));
+        Assert.IsTrue(progress.IsStageUnlocked(MissionStage.Stage2));
     }
 
     [Test]
     public void HardStage_LockedUntilM5Won()
     {
         WinRange(0, 8);
-        Assert.IsFalse(progress.IsStageUnlocked(MissionStage.Hard));
+        Assert.IsFalse(progress.IsStageUnlocked(MissionStage.Stage3));
 
         progress.RecordWin(9, 1);
-        Assert.IsTrue(progress.IsStageUnlocked(MissionStage.Hard));
+        Assert.IsTrue(progress.IsStageUnlocked(MissionStage.Stage3));
     }
 
     [Test]
@@ -114,7 +114,7 @@ public class MissionProgressTests
         progress.RecordWin(0, 3);
         progress.RecordWin(1, 2);
 
-        Assert.AreEqual(5, progress.GetStageStars(MissionStage.Easy));
+        Assert.AreEqual(5, progress.GetStageStars(MissionStage.Stage1));
         Assert.AreEqual(5, progress.GetTotalStars());
     }
 

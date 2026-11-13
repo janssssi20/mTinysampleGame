@@ -53,7 +53,7 @@ public class MissionMapTests
     {
         WinEasy(3, 3, 3, 3);
 
-        Assert.AreEqual(TrophyTier.None, StageMapModel.GetTrophy(progress, catalog, MissionStage.Easy));
+        Assert.AreEqual(TrophyTier.None, StageMapModel.GetTrophy(progress, catalog, MissionStage.Stage1));
     }
 
     [Test]
@@ -61,20 +61,20 @@ public class MissionMapTests
     {
         WinEasy(3, 3, 3, 3, 3);
 
-        Assert.AreEqual(TrophyTier.Gold, StageMapModel.GetTrophy(progress, catalog, MissionStage.Easy));
+        Assert.AreEqual(TrophyTier.Gold, StageMapModel.GetTrophy(progress, catalog, MissionStage.Stage1));
     }
 
     [Test]
     public void Trophy_TenToFourteenStars_Silver()
     {
         WinEasy(2, 2, 2, 2, 2);
-        Assert.AreEqual(TrophyTier.Silver, StageMapModel.GetTrophy(progress, catalog, MissionStage.Easy));
+        Assert.AreEqual(TrophyTier.Silver, StageMapModel.GetTrophy(progress, catalog, MissionStage.Stage1));
 
         progress.RecordWin(0, 3);
         progress.RecordWin(1, 3);
         progress.RecordWin(2, 3);
         progress.RecordWin(3, 3);
-        Assert.AreEqual(TrophyTier.Silver, StageMapModel.GetTrophy(progress, catalog, MissionStage.Easy), "14 stars");
+        Assert.AreEqual(TrophyTier.Silver, StageMapModel.GetTrophy(progress, catalog, MissionStage.Stage1), "14 stars");
     }
 
     [Test]
@@ -82,7 +82,7 @@ public class MissionMapTests
     {
         WinEasy(1, 2, 2, 2, 2);
 
-        Assert.AreEqual(TrophyTier.Bronze, StageMapModel.GetTrophy(progress, catalog, MissionStage.Easy));
+        Assert.AreEqual(TrophyTier.Bronze, StageMapModel.GetTrophy(progress, catalog, MissionStage.Stage1));
     }
 
     // ---------------- CONFETTI ----------------
@@ -92,32 +92,32 @@ public class MissionMapTests
     {
         WinEasy(1, 1, 1, 1, 1);
 
-        Assert.IsTrue(progress.TakeTrophyCelebration(MissionStage.Easy, TrophyTier.Bronze));
-        Assert.IsFalse(progress.TakeTrophyCelebration(MissionStage.Easy, TrophyTier.Bronze));
+        Assert.IsTrue(progress.TakeTrophyCelebration(MissionStage.Stage1, TrophyTier.Bronze));
+        Assert.IsFalse(progress.TakeTrophyCelebration(MissionStage.Stage1, TrophyTier.Bronze));
     }
 
     [Test]
     public void Confetti_TrophyUpgrade_PlaysAgain()
     {
-        progress.TakeTrophyCelebration(MissionStage.Easy, TrophyTier.Bronze);
+        progress.TakeTrophyCelebration(MissionStage.Stage1, TrophyTier.Bronze);
 
-        Assert.IsTrue(progress.TakeTrophyCelebration(MissionStage.Easy, TrophyTier.Silver));
+        Assert.IsTrue(progress.TakeTrophyCelebration(MissionStage.Stage1, TrophyTier.Silver));
     }
 
     [Test]
     public void Confetti_NoTrophy_NeverPlays()
     {
-        Assert.IsFalse(progress.TakeTrophyCelebration(MissionStage.Easy, TrophyTier.None));
+        Assert.IsFalse(progress.TakeTrophyCelebration(MissionStage.Stage1, TrophyTier.None));
     }
 
     [Test]
     public void Confetti_ResetAll_PlaysAgainAfterReset()
     {
-        progress.TakeTrophyCelebration(MissionStage.Easy, TrophyTier.Gold);
+        progress.TakeTrophyCelebration(MissionStage.Stage1, TrophyTier.Gold);
 
         progress.ResetAll();
 
-        Assert.IsTrue(progress.TakeTrophyCelebration(MissionStage.Easy, TrophyTier.Bronze));
+        Assert.IsTrue(progress.TakeTrophyCelebration(MissionStage.Stage1, TrophyTier.Bronze));
     }
 
     // ---------------- PATH ----------------
@@ -150,8 +150,8 @@ public class MissionMapTests
         // Slots: E1..E5 = 0..4, Easy trophy = 5, M1 = 6 ...
         Assert.AreEqual(0, StageMapModel.MissionSlot(catalog, 0));
         Assert.AreEqual(4, StageMapModel.MissionSlot(catalog, 4));
-        Assert.AreEqual(5, StageMapModel.TrophySlot(catalog, MissionStage.Easy));
+        Assert.AreEqual(5, StageMapModel.TrophySlot(catalog, MissionStage.Stage1));
         Assert.AreEqual(6, StageMapModel.MissionSlot(catalog, 5));
-        Assert.AreEqual(17, StageMapModel.TrophySlot(catalog, MissionStage.Hard));
+        Assert.AreEqual(17, StageMapModel.TrophySlot(catalog, MissionStage.Stage3));
     }
 }

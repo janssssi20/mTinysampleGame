@@ -17,6 +17,7 @@ public static class MainMenuSetup
     private const string CatalogPath = "Assets/Data/MissionCatalog.asset";
     public const string PadlockPath = "Assets/Image/ui/padlock.png";
     public const string StarPath = "Assets/Image/star (1).png";
+    public const string DoNotePath = "Assets/Image/mtiny command blocks/Notes/Layer 24.png";
 
     // =========================================================
     // MISSION MAP
@@ -30,11 +31,24 @@ public static class MainMenuSetup
     private const float PathMargin = 150f;
     private const float WaveHeight = 165f;
 
+    // One colour per stage (the redesign's block-family colours)
     private static readonly Color[] StageColors =
     {
-        new Color(0.91f, 0.47f, 0.16f),
-        new Color(0.36f, 0.68f, 0.24f),
-        new Color(0.58f, 0.33f, 0.66f)
+        new Color(0.24f, 0.75f, 0.42f),
+        new Color(0.29f, 0.62f, 1f),
+        new Color(1f, 0.79f, 0.24f),
+        new Color(1f, 0.49f, 0.71f),
+        new Color(0.61f, 0.42f, 1f)
+    };
+
+    // The block each stage adds, pictured on its card
+    private static readonly string[] StageIcons =
+    {
+        "Assets/Image/mtiny command blocks/New/Layer 12.png",
+        "Assets/Image/mtiny command blocks/New/x2.png",
+        "Assets/Image/mtiny command blocks/New/Happy.png",
+        DoNotePath,
+        null
     };
 
     private static readonly Color Ink = new Color(0.39f, 0.22f, 0.02f);
@@ -66,15 +80,6 @@ public static class MainMenuSetup
 
         TMP_FontAsset font = Find(scene, "Text (TMP)", Find(scene, "Explore", bg)).GetComponent<TMP_Text>().font;
         Animator titleMtiny = Find(scene, "Image", bg).GetComponent<Animator>();
-
-        // Card art from the old stage cards, before they go
-        Sprite[] cardArt = new Sprite[3];
-        string[] oldCards = { "easyCard", "mediumCard", "hardCard" };
-        for (int i = 0; i < 3; i++)
-        {
-            Transform old = Find(scene, oldCards[i], missionPanel.transform);
-            cardArt[i] = old != null ? old.GetComponent<Image>().sprite : rounded;
-        }
 
         foreach (string oldName in new[] { "mainMenuMissionPanel", "missionMap" })
         {
@@ -112,48 +117,61 @@ public static class MainMenuSetup
         ui.totalStarsText.alignment = TextAlignmentOptions.MidlineLeft;
 
         // ---------------- STAGE CARDS (LEFT) ----------------
-        string[] stageNames = { "EASY", "MEDIUM", "HARD" };
-        ui.stageCards = new MissionMapUI.StageCard[3];
+        // Five compact cards: the stage's block picture, its number and
+        // name, and the stars earned. Tap to jump along the path.
+        int stageCount = MissionStages.Count;
+        ui.stageCards = new MissionMapUI.StageCard[stageCount];
 
-        for (int s = 0; s < 3; s++)
+        for (int s = 0; s < stageCount; s++)
         {
-            Vector2 cardPos = new Vector2(190f, -250f - s * 290f);
+            MissionStage stage = (MissionStage)s;
+            Vector2 cardPos = new Vector2(190f, -222f - s * 182f);
 
             // Highlight ring sits behind the card (drawn first)
-            Image highlight = EnsureImage(root, $"cardHighlight{s}", ring, new Vector2(0f, 1f), cardPos, new Vector2(318f, 284f));
+            Image highlight = EnsureImage(root, $"cardHighlight{s}", ring, new Vector2(0f, 1f), cardPos, new Vector2(330f, 186f));
             highlight.type = Image.Type.Sliced;
             highlight.preserveAspect = false;
             highlight.color = Color.white;
             highlight.raycastTarget = false;
 
-            Image cardImage = EnsureImage(root, $"{stageNames[s].ToLower()}Card", cardArt[s], new Vector2(0f, 1f), cardPos, new Vector2(280f, 254f));
-            cardImage.preserveAspect = true;
+            Image cardImage = EnsureImage(root, $"stageCard{s}", rounded, new Vector2(0f, 1f), cardPos, new Vector2(300f, 160f));
+            cardImage.type = Image.Type.Sliced;
+            cardImage.preserveAspect = false;
+            cardImage.color = Color.white;
             Button card = cardImage.gameObject.AddComponent<Button>();
             card.targetGraphic = cardImage;
             UnityEventTools.AddIntPersistentListener(card.onClick, ui.OnStagePressed, s);
 
-            Image ribbon = EnsureImage(card.transform, "ribbon", rounded, new Vector2(0.5f, 1f), new Vector2(0f, -30f), new Vector2(230f, 62f));
-            ribbon.type = Image.Type.Sliced;
-            ribbon.preserveAspect = false;
-            ribbon.pixelsPerUnitMultiplier = 1.6f;
-            ribbon.color = StageColors[s];
-            ribbon.raycastTarget = false;
-            TMP_Text ribbonLabel = Label(ribbon.transform, "label", font, stageNames[s], 40, Color.white,
-                new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(220f, 60f));
-            ribbonLabel.enableAutoSizing = true;
-            ribbonLabel.fontSizeMin = 22;
-            ribbonLabel.fontSizeMax = 40;
+            // Coloured tile with the stage's block
+            Image tile = EnsureImage(card.transform, "iconTile", rounded, new Vector2(0f, 0.5f), new Vector2(70f, 0f), new Vector2(116f, 116f));
+            tile.type = Image.Type.Sliced;
+            tile.preserveAspect = false;
+            tile.color = StageColors[s];
+            tile.raycastTarget = false;
+            Sprite blockArt = StageIcons[s] != null ? LoadSprite(StageIcons[s]) : star;
+            Image blockIcon = EnsureImage(tile.transform, "icon", blockArt, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(92f, 84f));
+            blockIcon.raycastTarget = false;
 
-            Image cardStar = EnsureImage(card.transform, "starIcon", star, new Vector2(0.5f, 0f), new Vector2(-60f, 44f), new Vector2(46f, 46f));
+            TMP_Text number = Label(card.transform, "stageNo", font, MissionStages.Number(stage), 26, StageColors[s],
+                new Vector2(0f, 1f), new Vector2(212f, -30f), new Vector2(160f, 34f));
+            number.alignment = TextAlignmentOptions.MidlineLeft;
+            TMP_Text name = Label(card.transform, "name", font, MissionStages.Name(stage), 34, Ink,
+                new Vector2(0f, 0.5f), new Vector2(212f, 4f), new Vector2(160f, 46f));
+            name.alignment = TextAlignmentOptions.MidlineLeft;
+            name.enableAutoSizing = true;
+            name.fontSizeMin = 20;
+            name.fontSizeMax = 34;
+
+            Image cardStar = EnsureImage(card.transform, "starIcon", star, new Vector2(0f, 0f), new Vector2(150f, 34f), new Vector2(36f, 36f));
             cardStar.raycastTarget = false;
-            TMP_Text cardStars = Label(card.transform, "stars", font, "0/15", 38, Ink, new Vector2(0.5f, 0f),
-                new Vector2(30f, 44f), new Vector2(140f, 56f));
+            TMP_Text cardStars = Label(card.transform, "stars", font, "0/30", 28, Ink, new Vector2(0f, 0f),
+                new Vector2(226f, 34f), new Vector2(110f, 40f));
             cardStars.alignment = TextAlignmentOptions.MidlineLeft;
 
-            Image cardLock = EnsureImage(card.transform, "lockIcon", padlock, new Vector2(0.5f, 0.5f), new Vector2(0f, 10f), new Vector2(120f, 120f));
+            Image cardLock = EnsureImage(tile.transform, "lockIcon", padlock, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(80f, 80f));
             cardLock.raycastTarget = false;
 
-            Image cardTrophy = EnsureImage(card.transform, "trophyIcon", trophy, new Vector2(1f, 1f), new Vector2(-28f, -88f), new Vector2(58f, 58f));
+            Image cardTrophy = EnsureImage(card.transform, "trophyIcon", trophy, new Vector2(1f, 1f), new Vector2(-26f, -28f), new Vector2(42f, 42f));
             cardTrophy.raycastTarget = false;
 
             ui.stageCards[s] = new MissionMapUI.StageCard
@@ -184,7 +202,7 @@ public static class MainMenuSetup
         Stretch(viewport);
         viewport.gameObject.AddComponent<RectMask2D>();
 
-        int slots = StageMapModel.TrophySlot(catalog, MissionStage.Hard) + 1;
+        int slots = StageMapModel.TrophySlot(catalog, (MissionStage)(MissionStages.Count - 1)) + 1;
         RectTransform content = NewRect("Content", viewport);
         content.anchorMin = new Vector2(0f, 0f);
         content.anchorMax = new Vector2(0f, 1f);
@@ -211,9 +229,9 @@ public static class MainMenuSetup
         }
 
         // Stage labels where each stage's part of the path begins
-        string[] stageTitles = { "Easy · Learn to move", "Medium · Repeat", "Hard · Feelings and city" };
-        for (int s = 0; s < 3; s++)
+        for (int s = 0; s < MissionStages.Count; s++)
         {
+            string stageTitle = MissionStages.Name((MissionStage)s) + " · " + MissionStages.Tagline((MissionStage)s);
             Vector2 first = SlotPosition(StageMapModel.MissionSlot(catalog, catalog.IndicesInStage((MissionStage)s)[0]));
             Image label = EnsureImage(content, $"stageLabel{s}", rounded, new Vector2(0f, 0.5f),
                 new Vector2(first.x + 150f, 360f), new Vector2(420f, 76f));
@@ -222,7 +240,7 @@ public static class MainMenuSetup
             label.pixelsPerUnitMultiplier = 1.6f;
             label.color = StageColors[s];
             label.raycastTarget = false;
-            TMP_Text stageText = Label(label.transform, "text", font, stageTitles[s], 38, Color.white, new Vector2(0.5f, 0.5f),
+            TMP_Text stageText = Label(label.transform, "text", font, stageTitle, 38, Color.white, new Vector2(0.5f, 0.5f),
                 Vector2.zero, new Vector2(400f, 70f));
             stageText.enableAutoSizing = true;
             stageText.fontSizeMin = 24;
@@ -278,8 +296,8 @@ public static class MainMenuSetup
         }
 
         // Trophies: one after each stage, coloured bronze / silver / gold
-        ui.trophies = new MissionMapUI.StageTrophy[3];
-        for (int s = 0; s < 3; s++)
+        ui.trophies = new MissionMapUI.StageTrophy[MissionStages.Count];
+        for (int s = 0; s < MissionStages.Count; s++)
         {
             Vector2 pos = SlotPosition(StageMapModel.TrophySlot(catalog, (MissionStage)s));
 
@@ -344,7 +362,7 @@ public static class MainMenuSetup
         cardBody.preserveAspect = false;
         cardBody.color = StageColors[0];
 
-        ui.popupStageText = Label(cardBody.transform, "stage", font, "Easy · Mission 1", 34, Color.white,
+        ui.popupStageText = Label(cardBody.transform, "stage", font, "Let's Start! · Level 1", 34, Color.white,
             new Vector2(0.5f, 1f), new Vector2(0f, -55f), new Vector2(560f, 50f));
         ui.popupTitleText = Label(cardBody.transform, "title", font, "Mission", 62, Color.white,
             new Vector2(0.5f, 1f), new Vector2(0f, -125f), new Vector2(580f, 80f));
@@ -364,6 +382,8 @@ public static class MainMenuSetup
         ui.popupMoveHint = Hint(hints, "moveHint", "Layer 12");
         ui.popupMultiplierHint = Hint(hints, "multiplierHint", "x2");
         ui.popupEmotionHint = Hint(hints, "emotionHint", "Happy");
+        ui.popupSoundHint = Hint(hints, "soundHint", "Layer 24");
+        ui.popupSoundHint.GetComponent<Image>().sprite = AssetDatabase.LoadAssetAtPath<Sprite>(DoNotePath);
 
         Image playBody = EnsureImage(cardBody.transform, "playButton", rounded, new Vector2(0.5f, 0f),
             new Vector2(0f, 95f), new Vector2(440f, 120f));

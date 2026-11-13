@@ -51,13 +51,13 @@ public class MissionMapUI : MonoBehaviour
     [Header("Path")]
     public ScrollRect pathScroll;
     public RectTransform pathContent;
-    public PathNode[] nodes = new PathNode[15];
-    public StageTrophy[] trophies = new StageTrophy[3];
+    public PathNode[] nodes = new PathNode[50];
+    public StageTrophy[] trophies = new StageTrophy[MissionStages.Count];
     public RectTransform startBubble;
     public RectTransform mtinyMarker;
 
     [Header("Side")]
-    public StageCard[] stageCards = new StageCard[3];
+    public StageCard[] stageCards = new StageCard[MissionStages.Count];
     public TMP_Text totalStarsText;
 
     // =========================================================
@@ -71,15 +71,18 @@ public class MissionMapUI : MonoBehaviour
     public TMP_Text popupPlayLabel;
     public Color[] stageColors =
     {
-        new Color(0.91f, 0.47f, 0.16f),
-        new Color(0.36f, 0.68f, 0.24f),
-        new Color(0.58f, 0.33f, 0.66f)
+        new Color(0.24f, 0.75f, 0.42f),
+        new Color(0.29f, 0.62f, 1f),
+        new Color(1f, 0.79f, 0.24f),
+        new Color(1f, 0.49f, 0.71f),
+        new Color(0.61f, 0.42f, 1f)
     };
     public TMP_Text popupStageText;
     public TMP_Text popupTitleText;
     public GameObject popupMoveHint;
     public GameObject popupMultiplierHint;
     public GameObject popupEmotionHint;
+    public GameObject popupSoundHint;
 
     [Header("Effects")]
     public ConfettiBurst confetti;
@@ -99,8 +102,6 @@ public class MissionMapUI : MonoBehaviour
     public Color bronzeColor = new Color(0.80f, 0.50f, 0.25f);
     public Color silverColor = new Color(0.76f, 0.78f, 0.82f);
     public Color goldColor = new Color(0.98f, 0.76f, 0.18f);
-
-    private static readonly string[] StageNames = { "Easy", "Medium", "Hard" };
 
     private MissionProgress progress;
     private int selectedIndex = -1;
@@ -294,11 +295,12 @@ public class MissionMapUI : MonoBehaviour
         MissionDefinition mission = catalog.Get(index);
         int number = catalog.IndicesInStage(mission.stage).IndexOf(index) + 1;
 
-        popupStageText.text = StageNames[(int)mission.stage] + " · Mission " + number;
+        popupStageText.text = MissionStages.Name(mission.stage) + " · Level " + number;
         popupTitleText.text = mission.title;
         popupMoveHint.SetActive(mission.requireMovement);
         popupMultiplierHint.SetActive(mission.requireMultiplier);
         popupEmotionHint.SetActive(mission.requireEmotion);
+        if (popupSoundHint != null) popupSoundHint.SetActive(mission.requireSound);
 
         // The card wears its stage's colour
         Color stageColor = stageColors[(int)mission.stage];

@@ -175,6 +175,12 @@ public void RunProgram()
 
         commandManager.SetProgramRunning(true);
 
+        // Each run starts with every marked tile waiting again
+        if (MissionBoardBuilder.Instance != null)
+        {
+            MissionBoardBuilder.Instance.ResetCues();
+        }
+
         Debug.Log(
             "========== PROGRAM STARTED =========="
         );
@@ -368,6 +374,12 @@ public void RunProgram()
                     $"{cmd.emotion}"
                 );
 
+                // A smiley tile under mTiny counts this feeling
+                if (MissionBoardBuilder.Instance != null)
+                {
+                    MissionBoardBuilder.Instance.CuePlayed(CueKind.Feeling, transform.position);
+                }
+
 
 
                 yield return ShowEmotion(
@@ -387,6 +399,12 @@ public void RunProgram()
                     $"Executing Note: " +
                     $"{cmd.note}"
                 );
+
+                // A music tile under mTiny counts this note
+                if (MissionBoardBuilder.Instance != null)
+                {
+                    MissionBoardBuilder.Instance.CuePlayed(CueKind.Music, transform.position);
+                }
 
                 yield return PlayNote(
                     cmd.note
@@ -1101,7 +1119,11 @@ public void RunProgram()
 
     private IEnumerator PlayBumped()
     {
-        AudioManager.Play(Sfx.Oops);
+        // The bumped story has its own bonk; the plain panel gets the uh-oh
+        if (commandManager == null || commandManager.emotionStage == null)
+        {
+            AudioManager.Play(Sfx.Oops);
+        }
 
         if (commandManager == null)
         {

@@ -35,7 +35,209 @@ public static class AudioSynth
             Write("note_" + names[i].ToLowerInvariant(), Note(scale[i]), false);
         }
 
+        GenerateScenarioSounds();
+
         Debug.Log("[mTiny] Music and sound effects written to " + Folder);
+    }
+
+    // Only the scenario story sounds, so hand-made clips elsewhere are kept
+    [MenuItem("mTiny/Setup/Generate Scenario Sounds")]
+    public static void GenerateScenarioSounds()
+    {
+        Directory.CreateDirectory(Folder);
+
+        Write("sfx_policesiren", PoliceSiren(), false);
+        Write("sfx_ambulancesiren", AmbulanceSiren(), false);
+        Write("sfx_carwhoosh", CarWhoosh(), false);
+        Write("sfx_signalwait", SignalWait(), false);
+        Write("sfx_signalwalk", SignalWalk(), false);
+        Write("sfx_doorchime", DoorChime(), false);
+        Write("sfx_doorslide", DoorSlide(), false);
+        Write("sfx_heartbeat", Heartbeat(), false);
+        Write("sfx_bonk", Bonk(), false);
+        Write("sfx_thud", Thud(), false);
+        Write("sfx_dizzy", Dizzy(), false);
+        Write("sfx_sparkle", Sparkle(), false);
+        Write("sfx_sneak", Sneak(), false);
+        Write("sfx_whistle", Whistle(), false);
+
+        AssetDatabase.Refresh();
+        Debug.Log("[mTiny] Scenario sounds written to " + Folder);
+    }
+
+    // =========================================================
+    // SCENARIO SOUNDS
+    // =========================================================
+    // Toy-like and gentle: sirens are soft two-tone tunes, never
+    // loud or scary, and every sound is short.
+    // =========================================================
+
+    // Police "wee-woo": two soft tones taking turns
+    private static float[] PoliceSiren()
+    {
+        float[] buffer = Buffer(1.8f);
+        for (int i = 0; i < 4; i++)
+        {
+            float freq = i % 2 == 0 ? 960f : 720f;
+            AddNote(buffer, i * 0.45f, 0.43f, freq, 0.3f, Lead, 0.85f);
+        }
+        FadeOut(buffer, 0.1f);
+        return Normalize(buffer, 0.6f);
+    }
+
+    // Ambulance wail: rises and falls twice
+    private static float[] AmbulanceSiren()
+    {
+        float[] buffer = Buffer(1.6f);
+        float phase = 0f;
+        for (int i = 0; i < buffer.Length; i++)
+        {
+            float t = (float)i / Rate;
+            float freq = 650f + 330f * (0.5f - 0.5f * Mathf.Cos(t / 0.8f * 2f * Mathf.PI));
+            phase += freq / Rate;
+            float env = Mathf.Clamp01(t / 0.05f) * Mathf.Clamp01((1.6f - t) / 0.15f);
+            buffer[i] = Lead(phase) * 0.3f * env;
+        }
+        return Normalize(buffer, 0.6f);
+    }
+
+    // A car going past: soft rushing air and a low hum that drops
+    private static float[] CarWhoosh()
+    {
+        float[] buffer = Buffer(0.9f);
+        System.Random random = new System.Random(11);
+        float low = 0f, phase = 0f;
+        for (int i = 0; i < buffer.Length; i++)
+        {
+            float k = (float)i / buffer.Length;
+            float env = Mathf.Sin(k * Mathf.PI);
+            env *= env;
+            low += ((float)random.NextDouble() * 2f - 1f - low) * 0.08f;
+            phase += Mathf.Lerp(170f, 110f, k) / Rate;
+            buffer[i] = (low * 0.9f + Triangle(phase) * 0.25f) * env;
+        }
+        return Normalize(buffer, 0.55f);
+    }
+
+    // Crossing light, red: slow "wait" beeps
+    private static float[] SignalWait()
+    {
+        float[] buffer = Buffer(1.2f);
+        for (int i = 0; i < 3; i++) AddNote(buffer, i * 0.4f, 0.1f, 1000f, 0.3f, Lead, 0.8f);
+        return Normalize(buffer, 0.5f);
+    }
+
+    // Crossing light, green: quick bird-like "walk" chirps
+    private static float[] SignalWalk()
+    {
+        float[] buffer = Buffer(1.4f);
+        for (int i = 0; i < 7; i++) Sweep(buffer, i * 0.2f, 0.07f, 1800f, 3000f, 0.3f, Sine);
+        return Normalize(buffer, 0.5f);
+    }
+
+    // Door chime: "ding-dong"
+    private static float[] DoorChime()
+    {
+        float[] buffer = Buffer(1.1f);
+        AddNote(buffer, 0f, 0.6f, Freq(79), 0.4f, Sine, 0f);
+        AddNote(buffer, 0.3f, 0.75f, Freq(76), 0.4f, Sine, 0f);
+        return Normalize(buffer, 0.7f);
+    }
+
+    // Sliding doors: a soft "shhh"
+    private static float[] DoorSlide()
+    {
+        float[] buffer = Buffer(0.5f);
+        System.Random random = new System.Random(5);
+        float low = 0f;
+        for (int i = 0; i < buffer.Length; i++)
+        {
+            float k = (float)i / buffer.Length;
+            low += ((float)random.NextDouble() * 2f - 1f - low) * 0.25f;
+            buffer[i] = low * Mathf.Sin(k * Mathf.PI);
+        }
+        return Normalize(buffer, 0.4f);
+    }
+
+    // Heartbeat: two "lub-dub" beats
+    private static float[] Heartbeat()
+    {
+        float[] buffer = Buffer(1.1f);
+        foreach (float start in new[] { 0f, 0.18f, 0.6f, 0.78f })
+        {
+            Sweep(buffer, start, 0.14f, 95f, 50f, start % 0.6f < 0.1f ? 0.9f : 0.65f, Sine);
+        }
+        return Normalize(buffer, 0.85f);
+    }
+
+    // Cartoon "boing" when mTiny bonks into the blocks
+    private static float[] Bonk()
+    {
+        float[] buffer = Buffer(0.75f);
+        Sweep(buffer, 0f, 0.12f, 160f, 60f, 0.8f, Sine);
+        float phase = 0f;
+        int start = Mathf.RoundToInt(0.03f * Rate);
+        for (int i = start; i < buffer.Length; i++)
+        {
+            float t = (float)(i - start) / Rate;
+            float k = t / 0.7f;
+            float freq = Mathf.Lerp(520f, 170f, k) * (1f + 0.08f * Mathf.Sin(t * 2f * Mathf.PI * 22f));
+            phase += freq / Rate;
+            buffer[i] += Triangle(phase) * 0.35f * Mathf.Exp(-t / 0.25f);
+        }
+        return Normalize(buffer, 0.75f);
+    }
+
+    // Soft landing thump (a falling block, a dropped bag)
+    private static float[] Thud()
+    {
+        float[] buffer = Buffer(0.3f);
+        Sweep(buffer, 0f, 0.22f, 170f, 60f, 0.8f, Sine);
+        AddHat(buffer, 0f, 0.3f, new System.Random(2));
+        return Normalize(buffer, 0.7f);
+    }
+
+    // Stars spinning round mTiny's head: a twinkly up-and-down warble
+    private static float[] Dizzy()
+    {
+        float[] buffer = Buffer(1.6f);
+        int[] notes = { 88, 91, 95, 91 };
+        for (int i = 0; i < 15; i++) AddNote(buffer, i * 0.1f, 0.12f, Freq(notes[i % 4]), 0.2f, Sine, 0.1f);
+        return Normalize(buffer, 0.5f);
+    }
+
+    // Quick sparkle for stars and hearts
+    private static float[] Sparkle()
+    {
+        float[] buffer = Buffer(0.7f);
+        int[] notes = { 84, 88, 91, 96 };
+        for (int i = 0; i < notes.Length; i++) AddNote(buffer, i * 0.06f, 0.4f, Freq(notes[i]), 0.2f, Sine, 0.05f);
+        return Normalize(buffer, 0.55f);
+    }
+
+    // Raccoon tiptoeing: soft, sneaky low plucks
+    private static float[] Sneak()
+    {
+        float[] buffer = Buffer(1.3f);
+        int[] notes = { 55, 57, 55, 59, 57, 60 };
+        float[] times = { 0f, 0.15f, 0.4f, 0.55f, 0.8f, 0.95f };
+        for (int i = 0; i < notes.Length; i++) AddNote(buffer, times[i], 0.09f, Freq(notes[i]), 0.35f, Triangle, 0f);
+        return Normalize(buffer, 0.6f);
+    }
+
+    // Police whistle: a short, bright trill
+    private static float[] Whistle()
+    {
+        float[] buffer = Buffer(0.7f);
+        float phase = 0f;
+        for (int i = 0; i < buffer.Length; i++)
+        {
+            float t = (float)i / Rate;
+            phase += (2300f + 160f * Mathf.Sin(t * 2f * Mathf.PI * 28f)) / Rate;
+            float env = Mathf.Clamp01(t / 0.02f) * Mathf.Clamp01((0.7f - t) / 0.1f);
+            buffer[i] = Sine(phase) * 0.3f * env;
+        }
+        return Normalize(buffer, 0.45f);
     }
 
 

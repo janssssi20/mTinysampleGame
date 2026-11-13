@@ -13,29 +13,212 @@ MonoBehaviour:
   m_Name: MissionCatalog
   m_EditorClassIdentifier: 
   missions:
-  - id: E1
+  - id: S1-01
     stage: 0
-    title: Reach the Finish
-    instruction: Walk up, turn right, and reach the finish!
+    title: First steps
+    instruction: Turn right, then walk to the finish!
     requireMovement: 1
     requireMultiplier: 0
     requireEmotion: 0
+    requireSound: 0
+    visibleBlocks: 1
+    start: {x: 0, y: 0}
+    path:
+    - {x: 1, y: 0}
+    - {x: 2, y: 0}
+    - {x: 3, y: 0}
+    - {x: 4, y: 0}
+    goal: {x: 5, y: 0}
+    cityTiles: []
+    cues: []
+    intendedSolution: R F F F F F
+  - id: S1-02
+    stage: 0
+    title: Turn right
+    instruction: Go up, turn right, and reach the finish!
+    requireMovement: 1
+    requireMultiplier: 0
+    requireEmotion: 0
+    requireSound: 0
+    visibleBlocks: 1
+    start: {x: 0, y: 0}
+    path:
+    - {x: 0, y: 1}
+    - {x: 0, y: 2}
+    - {x: 1, y: 2}
+    - {x: 2, y: 2}
+    goal: {x: 3, y: 2}
+    cityTiles: []
+    cues: []
+    intendedSolution: F F R F F F
+  - id: S1-03
+    stage: 0
+    title: Turn left
+    instruction: Go up, turn left, and reach the finish!
+    requireMovement: 1
+    requireMultiplier: 0
+    requireEmotion: 0
+    requireSound: 0
+    visibleBlocks: 1
+    start: {x: 2, y: 0}
+    path:
+    - {x: 2, y: 1}
+    - {x: 2, y: 2}
+    - {x: 2, y: 3}
+    - {x: 1, y: 3}
+    goal: {x: 0, y: 3}
+    cityTiles: []
+    cues: []
+    intendedSolution: F F F L F F
+  - id: S1-04
+    stage: 0
+    title: Long walk
+    instruction: A long walk. Count every step!
+    requireMovement: 1
+    requireMultiplier: 0
+    requireEmotion: 0
+    requireSound: 0
+    visibleBlocks: 1
+    start: {x: 0, y: 0}
+    path:
+    - {x: 1, y: 0}
+    - {x: 2, y: 0}
+    - {x: 3, y: 0}
+    - {x: 4, y: 0}
+    - {x: 5, y: 0}
+    goal: {x: 6, y: 0}
+    cityTiles: []
+    cues: []
+    intendedSolution: R F F F F F F
+  - id: S1-05
+    stage: 0
+    title: Right first
+    instruction: Turn right first, then go up!
+    requireMovement: 1
+    requireMultiplier: 0
+    requireEmotion: 0
+    requireSound: 0
+    visibleBlocks: 1
+    start: {x: 0, y: 0}
+    path:
+    - {x: 1, y: 0}
+    - {x: 2, y: 0}
+    - {x: 3, y: 0}
+    - {x: 3, y: 1}
+    - {x: 3, y: 2}
+    goal: {x: 3, y: 3}
+    cityTiles: []
+    cues: []
+    intendedSolution: R F F F L F F F
+  - id: S1-06
+    stage: 0
+    title: Zig
+    instruction: Right, up, then right again!
+    requireMovement: 1
+    requireMultiplier: 0
+    requireEmotion: 0
+    requireSound: 0
+    visibleBlocks: 1
+    start: {x: 0, y: 0}
+    path:
+    - {x: 1, y: 0}
+    - {x: 2, y: 0}
+    - {x: 2, y: 1}
+    - {x: 2, y: 2}
+    - {x: 3, y: 2}
+    goal: {x: 4, y: 2}
+    cityTiles: []
+    cues: []
+    intendedSolution: R F F L F F R F F
+  - id: S1-07
+    stage: 0
+    title: Zag
+    instruction: Left, up, then left again!
+    requireMovement: 1
+    requireMultiplier: 0
+    requireEmotion: 0
+    requireSound: 0
+    visibleBlocks: 1
+    start: {x: 4, y: 0}
+    path:
+    - {x: 3, y: 0}
+    - {x: 2, y: 0}
+    - {x: 2, y: 1}
+    - {x: 2, y: 2}
+    - {x: 1, y: 2}
+    goal: {x: 0, y: 2}
+    cityTiles: []
+    cues: []
+    intendedSolution: L F F R F F L F F
+  - id: S1-08
+    stage: 0
+    title: Corner hop
+    instruction: Right, up, then left to the finish!
+    requireMovement: 1
+    requireMultiplier: 0
+    requireEmotion: 0
+    requireSound: 0
+    visibleBlocks: 1
+    start: {x: 0, y: 0}
+    path:
+    - {x: 1, y: 0}
+    - {x: 2, y: 0}
+    - {x: 2, y: 1}
+    - {x: 2, y: 2}
+    - {x: 2, y: 3}
+    - {x: 1, y: 3}
+    goal: {x: 0, y: 3}
+    cityTiles: []
+    cues: []
+    intendedSolution: R F F L F F F L F F
+  - id: S1-09
+    stage: 0
+    title: Stairs
+    instruction: Step, turn, step, turn. Climb the stairs!
+    requireMovement: 1
+    requireMultiplier: 0
+    requireEmotion: 0
+    requireSound: 0
     visibleBlocks: 1
     start: {x: 0, y: 0}
     path:
     - {x: 0, y: 1}
     - {x: 1, y: 1}
-    - {x: 2, y: 1}
-    goal: {x: 3, y: 1}
+    - {x: 1, y: 2}
+    - {x: 2, y: 2}
+    goal: {x: 2, y: 3}
     cityTiles: []
-    intendedSolution: F R F F F
-  - id: E2
+    cues: []
+    intendedSolution: F R F L F R F L F
+  - id: S1-10
     stage: 0
-    title: Count with multipliers
-    instruction: Go up, turn right, and use multipliers!
+    title: Big turn
+    instruction: Go up, over, and back down!
+    requireMovement: 1
+    requireMultiplier: 0
+    requireEmotion: 0
+    requireSound: 0
+    visibleBlocks: 1
+    start: {x: 0, y: 0}
+    path:
+    - {x: 0, y: 1}
+    - {x: 0, y: 2}
+    - {x: 0, y: 3}
+    - {x: 1, y: 3}
+    - {x: 2, y: 3}
+    - {x: 2, y: 2}
+    goal: {x: 2, y: 1}
+    cityTiles: []
+    cues: []
+    intendedSolution: F F F R F F R F F
+  - id: S2-01
+    stage: 1
+    title: Count to three
+    instruction: Use a x3 block to go up, then a x4 to go right!
     requireMovement: 1
     requireMultiplier: 1
     requireEmotion: 0
+    requireSound: 0
     visibleBlocks: 3
     start: {x: 0, y: 0}
     path:
@@ -47,64 +230,16 @@ MonoBehaviour:
     - {x: 3, y: 3}
     goal: {x: 4, y: 3}
     cityTiles: []
+    cues: []
     intendedSolution: F 3x R F 4x
-  - id: E3
-    stage: 0
-    title: Show a feeling
-    instruction: Show a feeling, then race to the finish!
-    requireMovement: 1
-    requireMultiplier: 1
-    requireEmotion: 1
-    visibleBlocks: 7
-    start: {x: 0, y: 0}
-    path:
-    - {x: 1, y: 0}
-    - {x: 2, y: 0}
-    - {x: 3, y: 0}
-    - {x: 4, y: 0}
-    goal: {x: 5, y: 0}
-    cityTiles: []
-    intendedSolution: Happy R F 5x
-  - id: E4
-    stage: 0
-    title: Turn right
-    instruction: Help mTiny turn right to reach the finish!
-    requireMovement: 1
-    requireMultiplier: 0
-    requireEmotion: 0
-    visibleBlocks: 1
-    start: {x: 1, y: 0}
-    path:
-    - {x: 1, y: 1}
-    - {x: 1, y: 2}
-    - {x: 2, y: 2}
-    goal: {x: 3, y: 2}
-    cityTiles: []
-    intendedSolution: F F R F F
-  - id: E5
-    stage: 0
-    title: Happy trip
-    instruction: Make mTiny happy, then climb up and over!
-    requireMovement: 1
-    requireMultiplier: 1
-    requireEmotion: 1
-    visibleBlocks: 7
-    start: {x: 0, y: 0}
-    path:
-    - {x: 0, y: 1}
-    - {x: 0, y: 2}
-    - {x: 0, y: 3}
-    - {x: 1, y: 3}
-    goal: {x: 2, y: 3}
-    cityTiles: []
-    intendedSolution: Happy F 3x R F 2x
-  - id: M1
+  - id: S2-02
     stage: 1
-    title: Long road
-    instruction: Go up, turn right, and zoom down the long road!
+    title: Zoom!
+    instruction: Go up two, turn right, and zoom five!
     requireMovement: 1
     requireMultiplier: 1
     requireEmotion: 0
+    requireSound: 0
     visibleBlocks: 3
     start: {x: 0, y: 0}
     path:
@@ -116,14 +251,16 @@ MonoBehaviour:
     - {x: 4, y: 2}
     goal: {x: 5, y: 2}
     cityTiles: []
+    cues: []
     intendedSolution: F 2x R F 5x
-  - id: M2
+  - id: S2-03
     stage: 1
-    title: Turn left
+    title: Left and zoom
     instruction: Climb up, turn left, then zoom to the finish!
     requireMovement: 1
     requireMultiplier: 1
     requireEmotion: 0
+    requireSound: 0
     visibleBlocks: 3
     start: {x: 5, y: 0}
     path:
@@ -136,14 +273,16 @@ MonoBehaviour:
     - {x: 1, y: 3}
     goal: {x: 0, y: 3}
     cityTiles: []
+    cues: []
     intendedSolution: F 3x L F 5x
-  - id: M3
+  - id: S2-04
     stage: 1
     title: Up and over
     instruction: Up, over, and back down to the finish!
     requireMovement: 1
     requireMultiplier: 1
     requireEmotion: 0
+    requireSound: 0
     visibleBlocks: 3
     start: {x: 0, y: 0}
     path:
@@ -154,37 +293,62 @@ MonoBehaviour:
     - {x: 2, y: 3}
     - {x: 3, y: 3}
     - {x: 3, y: 2}
-    - {x: 3, y: 1}
-    goal: {x: 3, y: 0}
+    goal: {x: 3, y: 1}
     cityTiles: []
-    intendedSolution: F 3x R F 3x R F 3x
-  - id: M4
+    cues: []
+    intendedSolution: F 3x R F 3x R F 2x
+  - id: S2-05
     stage: 1
-    title: Corner
-    instruction: Turn left, go far, then turn right and climb!
+    title: Big step
+    instruction: Zoom right, then climb up!
     requireMovement: 1
     requireMultiplier: 1
     requireEmotion: 0
+    requireSound: 0
     visibleBlocks: 3
-    start: {x: 7, y: 0}
+    start: {x: 0, y: 0}
     path:
-    - {x: 6, y: 0}
-    - {x: 5, y: 0}
-    - {x: 4, y: 0}
+    - {x: 1, y: 0}
+    - {x: 2, y: 0}
     - {x: 3, y: 0}
+    - {x: 4, y: 0}
+    - {x: 5, y: 0}
+    - {x: 5, y: 1}
+    - {x: 5, y: 2}
+    goal: {x: 5, y: 3}
+    cityTiles: []
+    cues: []
+    intendedSolution: R F 5x L F 3x
+  - id: S2-06
+    stage: 1
+    title: Two turns
+    instruction: Right, up, then right again!
+    requireMovement: 1
+    requireMultiplier: 1
+    requireEmotion: 0
+    requireSound: 0
+    visibleBlocks: 3
+    start: {x: 0, y: 0}
+    path:
+    - {x: 1, y: 0}
     - {x: 2, y: 0}
     - {x: 2, y: 1}
     - {x: 2, y: 2}
-    goal: {x: 2, y: 3}
+    - {x: 2, y: 3}
+    - {x: 3, y: 3}
+    - {x: 4, y: 3}
+    goal: {x: 5, y: 3}
     cityTiles: []
-    intendedSolution: L F 5x R F 3x
-  - id: M5
+    cues: []
+    intendedSolution: R F 2x L F 3x R F 3x
+  - id: S2-07
     stage: 1
-    title: Climb
-    instruction: Climb the stairs all the way to the finish!
+    title: Stairs up
+    instruction: Climb the big stairs all the way to the finish!
     requireMovement: 1
     requireMultiplier: 1
     requireEmotion: 0
+    requireSound: 0
     visibleBlocks: 3
     start: {x: 0, y: 0}
     path:
@@ -198,14 +362,186 @@ MonoBehaviour:
     - {x: 5, y: 3}
     goal: {x: 6, y: 3}
     cityTiles: []
+    cues: []
     intendedSolution: R F 3x L F 3x R F 3x
-  - id: H1
-    stage: 2
-    title: U-turn
-    instruction: Show a feeling and make a big U-turn!
+  - id: S2-08
+    stage: 1
+    title: Hook
+    instruction: Go left, climb up, then turn right!
     requireMovement: 1
-    requireMultiplier: 0
+    requireMultiplier: 1
+    requireEmotion: 0
+    requireSound: 0
+    visibleBlocks: 3
+    start: {x: 4, y: 0}
+    path:
+    - {x: 3, y: 0}
+    - {x: 2, y: 0}
+    - {x: 1, y: 0}
+    - {x: 0, y: 0}
+    - {x: 0, y: 1}
+    - {x: 0, y: 2}
+    - {x: 0, y: 3}
+    - {x: 1, y: 3}
+    goal: {x: 2, y: 3}
+    cityTiles: []
+    cues: []
+    intendedSolution: L F 4x R F 3x R F 2x
+  - id: S2-09
+    stage: 1
+    title: Snake
+    instruction: Up, over, and all the way down!
+    requireMovement: 1
+    requireMultiplier: 1
+    requireEmotion: 0
+    requireSound: 0
+    visibleBlocks: 3
+    start: {x: 0, y: 0}
+    path:
+    - {x: 0, y: 1}
+    - {x: 0, y: 2}
+    - {x: 0, y: 3}
+    - {x: 1, y: 3}
+    - {x: 2, y: 3}
+    - {x: 2, y: 2}
+    - {x: 2, y: 1}
+    goal: {x: 2, y: 0}
+    cityTiles: []
+    cues: []
+    intendedSolution: F 3x R F 2x R F 3x
+  - id: S2-10
+    stage: 1
+    title: Long road
+    instruction: Up, a long road right, then down!
+    requireMovement: 1
+    requireMultiplier: 1
+    requireEmotion: 0
+    requireSound: 0
+    visibleBlocks: 3
+    start: {x: 0, y: 0}
+    path:
+    - {x: 0, y: 1}
+    - {x: 0, y: 2}
+    - {x: 1, y: 2}
+    - {x: 2, y: 2}
+    - {x: 3, y: 2}
+    - {x: 4, y: 2}
+    - {x: 5, y: 2}
+    - {x: 5, y: 1}
+    goal: {x: 5, y: 0}
+    cityTiles: []
+    cues: []
+    intendedSolution: F 2x R F 5x R F 2x
+  - id: S3-01
+    stage: 2
+    title: Happy start
+    instruction: Zoom to the finish. Show a feeling on the smiley tile!
+    requireMovement: 1
+    requireMultiplier: 1
     requireEmotion: 1
+    requireSound: 0
+    visibleBlocks: 7
+    start: {x: 0, y: 0}
+    path:
+    - {x: 1, y: 0}
+    - {x: 2, y: 0}
+    - {x: 3, y: 0}
+    - {x: 4, y: 0}
+    - {x: 5, y: 0}
+    - {x: 5, y: 1}
+    - {x: 5, y: 2}
+    - {x: 5, y: 3}
+    goal: {x: 6, y: 3}
+    cityTiles: []
+    cues:
+    - cell: {x: 5, y: 0}
+      kind: 0
+    intendedSolution: R F 5x Happy L F 3x R F
+  - id: S3-02
+    stage: 2
+    title: Sleepy road
+    instruction: Up and over. Stop on the smiley tile and show a feeling!
+    requireMovement: 1
+    requireMultiplier: 1
+    requireEmotion: 1
+    requireSound: 0
+    visibleBlocks: 7
+    start: {x: 0, y: 0}
+    path:
+    - {x: 0, y: 1}
+    - {x: 0, y: 2}
+    - {x: 0, y: 3}
+    - {x: 1, y: 3}
+    - {x: 2, y: 3}
+    - {x: 3, y: 3}
+    - {x: 3, y: 2}
+    - {x: 3, y: 1}
+    goal: {x: 3, y: 0}
+    cityTiles: []
+    cues:
+    - cell: {x: 0, y: 2}
+      kind: 0
+    intendedSolution: F 2x Surprise F R F 3x R F 3x
+  - id: S3-03
+    stage: 2
+    title: Surprise!
+    instruction: Go left, then climb. Show a feeling on the smiley tile!
+    requireMovement: 1
+    requireMultiplier: 1
+    requireEmotion: 1
+    requireSound: 0
+    visibleBlocks: 7
+    start: {x: 5, y: 0}
+    path:
+    - {x: 4, y: 0}
+    - {x: 3, y: 0}
+    - {x: 2, y: 0}
+    - {x: 1, y: 0}
+    - {x: 0, y: 0}
+    - {x: 0, y: 1}
+    - {x: 0, y: 2}
+    - {x: 0, y: 3}
+    - {x: 1, y: 3}
+    goal: {x: 2, y: 3}
+    cityTiles: []
+    cues:
+    - cell: {x: 0, y: 1}
+      kind: 0
+    intendedSolution: L F 5x R F Playful F 2x R F 2x
+  - id: S3-04
+    stage: 2
+    title: Dizzy loop
+    instruction: A big loop! Show a feeling on the smiley tile.
+    requireMovement: 1
+    requireMultiplier: 1
+    requireEmotion: 1
+    requireSound: 0
+    visibleBlocks: 7
+    start: {x: 0, y: 0}
+    path:
+    - {x: 0, y: 1}
+    - {x: 0, y: 2}
+    - {x: 0, y: 3}
+    - {x: 1, y: 3}
+    - {x: 2, y: 3}
+    - {x: 3, y: 3}
+    - {x: 4, y: 3}
+    - {x: 4, y: 2}
+    - {x: 4, y: 1}
+    goal: {x: 4, y: 0}
+    cityTiles: []
+    cues:
+    - cell: {x: 0, y: 2}
+      kind: 0
+    intendedSolution: F 2x Sleepy F R F 4x R F 3x
+  - id: S3-05
+    stage: 2
+    title: Playful hook
+    instruction: Up, over and down. Be playful on the smiley tile!
+    requireMovement: 1
+    requireMultiplier: 1
+    requireEmotion: 1
+    requireSound: 0
     visibleBlocks: 7
     start: {x: 0, y: 0}
     path:
@@ -218,17 +554,71 @@ MonoBehaviour:
     - {x: 4, y: 3}
     - {x: 5, y: 3}
     - {x: 5, y: 2}
-    - {x: 5, y: 1}
-    goal: {x: 5, y: 0}
+    goal: {x: 5, y: 1}
     cityTiles: []
-    intendedSolution: Happy F 3x R F 5x R F 3x
-  - id: H2
+    cues:
+    - cell: {x: 5, y: 2}
+      kind: 0
+    intendedSolution: F 3x R F 5x R F Angry F
+  - id: S3-06
     stage: 2
-    title: Police help
-    instruction: Turn right and say hello to the police!
+    title: Grumpy wall
+    instruction: Zoom right, then climb. Show a feeling on the smiley tile!
     requireMovement: 1
     requireMultiplier: 1
     requireEmotion: 1
+    requireSound: 0
+    visibleBlocks: 7
+    start: {x: 0, y: 0}
+    path:
+    - {x: 1, y: 0}
+    - {x: 2, y: 0}
+    - {x: 3, y: 0}
+    - {x: 4, y: 0}
+    - {x: 5, y: 0}
+    - {x: 5, y: 1}
+    - {x: 5, y: 2}
+    - {x: 5, y: 3}
+    - {x: 4, y: 3}
+    goal: {x: 3, y: 3}
+    cityTiles: []
+    cues:
+    - cell: {x: 5, y: 2}
+      kind: 0
+    intendedSolution: R F 5x L F 2x Dizzy F L F 2x
+  - id: S3-07
+    stage: 2
+    title: Two feelings
+    instruction: Find the smiley tile and show a feeling there!
+    requireMovement: 1
+    requireMultiplier: 1
+    requireEmotion: 1
+    requireSound: 0
+    visibleBlocks: 7
+    start: {x: 0, y: 0}
+    path:
+    - {x: 1, y: 0}
+    - {x: 2, y: 0}
+    - {x: 3, y: 0}
+    - {x: 3, y: 1}
+    - {x: 3, y: 2}
+    - {x: 3, y: 3}
+    - {x: 2, y: 3}
+    - {x: 1, y: 3}
+    goal: {x: 0, y: 3}
+    cityTiles: []
+    cues:
+    - cell: {x: 2, y: 0}
+      kind: 0
+    intendedSolution: R F 2x Sad F L F 3x L F 3x
+  - id: S3-08
+    stage: 2
+    title: Police hello
+    instruction: Say hello to the police. Show a feeling on the smiley tile!
+    requireMovement: 1
+    requireMultiplier: 1
+    requireEmotion: 1
+    requireSound: 0
     visibleBlocks: 7
     start: {x: 0, y: 0}
     path:
@@ -246,14 +636,18 @@ MonoBehaviour:
     cityTiles:
     - cell: {x: 2, y: 3}
       kind: 2
-    intendedSolution: Surprise F 3x R F 5x R F 3x
-  - id: H3
+    cues:
+    - cell: {x: 5, y: 2}
+      kind: 0
+    intendedSolution: F 3x R F 5x R F Happy F 2x
+  - id: S3-09
     stage: 2
     title: Hospital visit
-    instruction: Pass the hospital and reach the flag!
+    instruction: Pass the hospital. Show a feeling on the smiley tile!
     requireMovement: 1
     requireMultiplier: 1
     requireEmotion: 1
+    requireSound: 0
     visibleBlocks: 7
     start: {x: 0, y: 0}
     path:
@@ -271,14 +665,18 @@ MonoBehaviour:
     cityTiles:
     - cell: {x: 3, y: 0}
       kind: 0
-    intendedSolution: Happy R F 5x L F 3x L F 3x
-  - id: H4
+    cues:
+    - cell: {x: 5, y: 2}
+      kind: 0
+    intendedSolution: R F 5x L F 2x Surprise F L F 3x
+  - id: S3-10
     stage: 2
     title: School crossing
-    instruction: Watch out for the children crossing!
+    instruction: Watch the crossing! Show a feeling on the smiley tile.
     requireMovement: 1
     requireMultiplier: 1
     requireEmotion: 1
+    requireSound: 0
     visibleBlocks: 7
     start: {x: 0, y: 0}
     path:
@@ -291,21 +689,81 @@ MonoBehaviour:
     - {x: 5, y: 2}
     - {x: 5, y: 3}
     - {x: 4, y: 3}
-    - {x: 3, y: 3}
-    - {x: 2, y: 3}
-    goal: {x: 1, y: 3}
+    goal: {x: 3, y: 3}
     cityTiles:
     - cell: {x: 3, y: 1}
       kind: 1
-    intendedSolution: Surprise F R F 5x L F 2x L F 4x
-  - id: H5
-    stage: 2
-    title: Big city
-    instruction: A big trip across the city. You can do it!
+    cues:
+    - cell: {x: 5, y: 3}
+      kind: 0
+    intendedSolution: F R F 5x L F 2x Playful L F 2x
+  - id: S4-01
+    stage: 3
+    title: First song
+    instruction: Sing on the music tile and show a feeling on the smiley tile!
     requireMovement: 1
     requireMultiplier: 1
     requireEmotion: 1
-    visibleBlocks: 7
+    requireSound: 1
+    visibleBlocks: 15
+    start: {x: 0, y: 0}
+    path:
+    - {x: 0, y: 1}
+    - {x: 0, y: 2}
+    - {x: 0, y: 3}
+    - {x: 1, y: 3}
+    - {x: 2, y: 3}
+    - {x: 3, y: 3}
+    - {x: 4, y: 3}
+    - {x: 5, y: 3}
+    - {x: 5, y: 2}
+    - {x: 5, y: 1}
+    goal: {x: 5, y: 0}
+    cityTiles: []
+    cues:
+    - cell: {x: 5, y: 1}
+      kind: 0
+    - cell: {x: 0, y: 2}
+      kind: 1
+    intendedSolution: F 2x Do F R F 5x R F 2x Sleepy F
+  - id: S4-02
+    stage: 3
+    title: Do Re Mi
+    instruction: Sing on the music tile. Smile on the smiley tile!
+    requireMovement: 1
+    requireMultiplier: 1
+    requireEmotion: 1
+    requireSound: 1
+    visibleBlocks: 15
+    start: {x: 0, y: 0}
+    path:
+    - {x: 1, y: 0}
+    - {x: 2, y: 0}
+    - {x: 3, y: 0}
+    - {x: 4, y: 0}
+    - {x: 5, y: 0}
+    - {x: 5, y: 1}
+    - {x: 5, y: 2}
+    - {x: 5, y: 3}
+    - {x: 4, y: 3}
+    - {x: 3, y: 3}
+    goal: {x: 2, y: 3}
+    cityTiles: []
+    cues:
+    - cell: {x: 4, y: 3}
+      kind: 0
+    - cell: {x: 5, y: 1}
+      kind: 1
+    intendedSolution: R F 5x L F Re F 2x L F Angry F 2x
+  - id: S4-03
+    stage: 3
+    title: Music walk
+    instruction: A long road! Sing on the music tile, feel on the smiley tile.
+    requireMovement: 1
+    requireMultiplier: 1
+    requireEmotion: 1
+    requireSound: 1
+    visibleBlocks: 15
     start: {x: 0, y: 0}
     path:
     - {x: 0, y: 1}
@@ -317,13 +775,600 @@ MonoBehaviour:
     - {x: 4, y: 3}
     - {x: 5, y: 3}
     - {x: 6, y: 3}
-    - {x: 7, y: 3}
-    - {x: 7, y: 2}
-    - {x: 7, y: 1}
-    goal: {x: 7, y: 0}
+    - {x: 6, y: 2}
+    goal: {x: 6, y: 1}
+    cityTiles: []
+    cues:
+    - cell: {x: 0, y: 3}
+      kind: 0
+    - cell: {x: 6, y: 2}
+      kind: 1
+    intendedSolution: F 3x Dizzy R F 5x F R F Mi F
+  - id: S4-04
+    stage: 3
+    title: Echo
+    instruction: Go left and come back. Sing and feel on the right tiles!
+    requireMovement: 1
+    requireMultiplier: 1
+    requireEmotion: 1
+    requireSound: 1
+    visibleBlocks: 15
+    start: {x: 5, y: 0}
+    path:
+    - {x: 4, y: 0}
+    - {x: 3, y: 0}
+    - {x: 2, y: 0}
+    - {x: 1, y: 0}
+    - {x: 0, y: 0}
+    - {x: 0, y: 1}
+    - {x: 0, y: 2}
+    - {x: 0, y: 3}
+    - {x: 1, y: 3}
+    - {x: 2, y: 3}
+    - {x: 3, y: 3}
+    - {x: 4, y: 3}
+    goal: {x: 5, y: 3}
+    cityTiles: []
+    cues:
+    - cell: {x: 4, y: 3}
+      kind: 0
+    - cell: {x: 0, y: 1}
+      kind: 1
+    intendedSolution: L F 5x R F Fa F 2x R F 4x Sad F
+  - id: S4-05
+    stage: 3
+    title: Climb and sing
+    instruction: Climb and sing on the music tile. Feel on the smiley tile!
+    requireMovement: 1
+    requireMultiplier: 1
+    requireEmotion: 1
+    requireSound: 1
+    visibleBlocks: 15
+    start: {x: 0, y: 0}
+    path:
+    - {x: 1, y: 0}
+    - {x: 2, y: 0}
+    - {x: 2, y: 1}
+    - {x: 2, y: 2}
+    - {x: 2, y: 3}
+    - {x: 3, y: 3}
+    - {x: 4, y: 3}
+    - {x: 5, y: 3}
+    - {x: 6, y: 3}
+    - {x: 6, y: 2}
+    - {x: 6, y: 1}
+    goal: {x: 6, y: 0}
+    cityTiles: []
+    cues:
+    - cell: {x: 2, y: 0}
+      kind: 0
+    - cell: {x: 2, y: 1}
+      kind: 1
+    intendedSolution: R F 2x Happy L F Sol F 2x R F 4x R F 3x
+  - id: S4-06
+    stage: 3
+    title: Big U
+    instruction: A big U! Find the music tile and the smiley tile.
+    requireMovement: 1
+    requireMultiplier: 1
+    requireEmotion: 1
+    requireSound: 1
+    visibleBlocks: 15
+    start: {x: 0, y: 0}
+    path:
+    - {x: 0, y: 1}
+    - {x: 0, y: 2}
+    - {x: 0, y: 3}
+    - {x: 1, y: 3}
+    - {x: 2, y: 3}
+    - {x: 3, y: 3}
+    - {x: 4, y: 3}
+    - {x: 5, y: 3}
+    - {x: 6, y: 3}
+    - {x: 6, y: 2}
+    - {x: 6, y: 1}
+    goal: {x: 6, y: 0}
+    cityTiles: []
+    cues:
+    - cell: {x: 0, y: 3}
+      kind: 0
+    - cell: {x: 4, y: 3}
+      kind: 1
+    intendedSolution: F 3x Surprise R F 4x La F 2x R F 3x
+  - id: S4-07
+    stage: 3
+    title: Zigzag song
+    instruction: Zigzag, and stop on the music and smiley tiles!
+    requireMovement: 1
+    requireMultiplier: 1
+    requireEmotion: 1
+    requireSound: 1
+    visibleBlocks: 15
+    start: {x: 0, y: 0}
+    path:
+    - {x: 1, y: 0}
+    - {x: 2, y: 0}
+    - {x: 3, y: 0}
+    - {x: 3, y: 1}
+    - {x: 3, y: 2}
+    - {x: 3, y: 3}
+    - {x: 4, y: 3}
+    - {x: 5, y: 3}
+    - {x: 6, y: 3}
+    - {x: 6, y: 2}
+    - {x: 6, y: 1}
+    goal: {x: 6, y: 0}
+    cityTiles: []
+    cues:
+    - cell: {x: 3, y: 0}
+      kind: 0
+    - cell: {x: 6, y: 3}
+      kind: 1
+    intendedSolution: R F 3x Playful L F 3x R F 3x Si R F 3x
+  - id: S4-08
+    stage: 3
+    title: Concert
+    instruction: Up and down like a song. Stop on both special tiles!
+    requireMovement: 1
+    requireMultiplier: 1
+    requireEmotion: 1
+    requireSound: 1
+    visibleBlocks: 15
+    start: {x: 0, y: 0}
+    path:
+    - {x: 0, y: 1}
+    - {x: 0, y: 2}
+    - {x: 0, y: 3}
+    - {x: 1, y: 3}
+    - {x: 2, y: 3}
+    - {x: 2, y: 2}
+    - {x: 2, y: 1}
+    - {x: 3, y: 1}
+    - {x: 4, y: 1}
+    - {x: 4, y: 2}
+    goal: {x: 4, y: 3}
+    cityTiles: []
+    cues:
+    - cell: {x: 0, y: 2}
+      kind: 0
+    - cell: {x: 1, y: 3}
+      kind: 1
+    intendedSolution: F 2x Sleepy F R F Do F R F 2x L F 2x L F 2x
+  - id: S4-09
+    stage: 3
+    title: Police song
+    instruction: Sing for the police on the music tile. Smile on the smiley tile!
+    requireMovement: 1
+    requireMultiplier: 1
+    requireEmotion: 1
+    requireSound: 1
+    visibleBlocks: 15
+    start: {x: 0, y: 0}
+    path:
+    - {x: 0, y: 1}
+    - {x: 0, y: 2}
+    - {x: 0, y: 3}
+    - {x: 1, y: 3}
+    - {x: 2, y: 3}
+    - {x: 3, y: 3}
+    - {x: 4, y: 3}
+    - {x: 5, y: 3}
+    - {x: 6, y: 3}
+    - {x: 6, y: 2}
+    - {x: 6, y: 1}
+    goal: {x: 6, y: 0}
     cityTiles:
     - cell: {x: 2, y: 3}
       kind: 2
     - cell: {x: 5, y: 3}
       kind: 0
-    intendedSolution: Happy F 3x R Playful F 5x F 2x R F 3x
+    cues:
+    - cell: {x: 6, y: 1}
+      kind: 0
+    - cell: {x: 1, y: 3}
+      kind: 1
+    intendedSolution: F 3x R F Re F 5x R F 2x Angry F
+  - id: S4-10
+    stage: 3
+    title: Busy street
+    instruction: Busy street! Stop on the music tile and the smiley tile.
+    requireMovement: 1
+    requireMultiplier: 1
+    requireEmotion: 1
+    requireSound: 1
+    visibleBlocks: 15
+    start: {x: 0, y: 0}
+    path:
+    - {x: 1, y: 0}
+    - {x: 2, y: 0}
+    - {x: 3, y: 0}
+    - {x: 4, y: 0}
+    - {x: 5, y: 0}
+    - {x: 6, y: 0}
+    - {x: 6, y: 1}
+    - {x: 6, y: 2}
+    - {x: 6, y: 3}
+    - {x: 5, y: 3}
+    - {x: 4, y: 3}
+    - {x: 3, y: 3}
+    - {x: 2, y: 3}
+    goal: {x: 1, y: 3}
+    cityTiles:
+    - cell: {x: 3, y: 0}
+      kind: 1
+    - cell: {x: 3, y: 3}
+      kind: 2
+    cues:
+    - cell: {x: 4, y: 0}
+      kind: 0
+    - cell: {x: 2, y: 3}
+      kind: 1
+    intendedSolution: R F 4x Dizzy F 2x L F 3x L F 4x Mi F
+  - id: S5-01
+    stage: 4
+    title: City tour
+    instruction: A big city tour. Stop on the music tile and the smiley tile!
+    requireMovement: 1
+    requireMultiplier: 1
+    requireEmotion: 1
+    requireSound: 1
+    visibleBlocks: 15
+    start: {x: 0, y: 0}
+    path:
+    - {x: 0, y: 1}
+    - {x: 0, y: 2}
+    - {x: 0, y: 3}
+    - {x: 1, y: 3}
+    - {x: 2, y: 3}
+    - {x: 3, y: 3}
+    - {x: 4, y: 3}
+    - {x: 5, y: 3}
+    - {x: 6, y: 3}
+    - {x: 6, y: 2}
+    - {x: 6, y: 1}
+    - {x: 6, y: 0}
+    - {x: 5, y: 0}
+    goal: {x: 4, y: 0}
+    cityTiles:
+    - cell: {x: 2, y: 3}
+      kind: 2
+    cues:
+    - cell: {x: 3, y: 3}
+      kind: 0
+    - cell: {x: 1, y: 3}
+      kind: 1
+    intendedSolution: F 3x R F Fa F 2x Sad F 3x R F 3x R F 2x
+  - id: S5-02
+    stage: 4
+    title: Hospital run
+    instruction: Hurry past the hospital. Don't miss the special tiles!
+    requireMovement: 1
+    requireMultiplier: 1
+    requireEmotion: 1
+    requireSound: 1
+    visibleBlocks: 15
+    start: {x: 0, y: 0}
+    path:
+    - {x: 1, y: 0}
+    - {x: 2, y: 0}
+    - {x: 3, y: 0}
+    - {x: 4, y: 0}
+    - {x: 5, y: 0}
+    - {x: 6, y: 0}
+    - {x: 6, y: 1}
+    - {x: 6, y: 2}
+    - {x: 6, y: 3}
+    - {x: 5, y: 3}
+    - {x: 4, y: 3}
+    - {x: 3, y: 3}
+    - {x: 2, y: 3}
+    - {x: 1, y: 3}
+    goal: {x: 0, y: 3}
+    cityTiles:
+    - cell: {x: 3, y: 0}
+      kind: 0
+    - cell: {x: 2, y: 3}
+      kind: 1
+    cues:
+    - cell: {x: 3, y: 3}
+      kind: 0
+    - cell: {x: 4, y: 0}
+      kind: 1
+    intendedSolution: R F 4x Sol F 2x L F 3x L F 3x Happy F 3x
+  - id: S5-03
+    stage: 4
+    title: Twisty town
+    instruction: A twisty town. Sing and feel on the right tiles!
+    requireMovement: 1
+    requireMultiplier: 1
+    requireEmotion: 1
+    requireSound: 1
+    visibleBlocks: 15
+    start: {x: 0, y: 0}
+    path:
+    - {x: 0, y: 1}
+    - {x: 0, y: 2}
+    - {x: 0, y: 3}
+    - {x: 1, y: 3}
+    - {x: 2, y: 3}
+    - {x: 2, y: 2}
+    - {x: 2, y: 1}
+    - {x: 2, y: 0}
+    - {x: 3, y: 0}
+    - {x: 4, y: 0}
+    - {x: 4, y: 1}
+    - {x: 4, y: 2}
+    - {x: 4, y: 3}
+    goal: {x: 5, y: 3}
+    cityTiles:
+    - cell: {x: 1, y: 3}
+      kind: 2
+    - cell: {x: 3, y: 0}
+      kind: 0
+    cues:
+    - cell: {x: 4, y: 3}
+      kind: 0
+    - cell: {x: 0, y: 3}
+      kind: 1
+    intendedSolution: F 3x La R F 2x R F 3x L F 2x L F 3x Surprise R F
+  - id: S5-04
+    stage: 4
+    title: Long song
+    instruction: A long road. Sing on the music tile, feel on the smiley tile!
+    requireMovement: 1
+    requireMultiplier: 1
+    requireEmotion: 1
+    requireSound: 1
+    visibleBlocks: 15
+    start: {x: 0, y: 0}
+    path:
+    - {x: 0, y: 1}
+    - {x: 0, y: 2}
+    - {x: 1, y: 2}
+    - {x: 2, y: 2}
+    - {x: 3, y: 2}
+    - {x: 4, y: 2}
+    - {x: 5, y: 2}
+    - {x: 6, y: 2}
+    - {x: 6, y: 1}
+    - {x: 6, y: 0}
+    - {x: 5, y: 0}
+    - {x: 4, y: 0}
+    - {x: 3, y: 0}
+    goal: {x: 2, y: 0}
+    cityTiles:
+    - cell: {x: 3, y: 2}
+      kind: 1
+    cues:
+    - cell: {x: 6, y: 1}
+      kind: 0
+    - cell: {x: 4, y: 0}
+      kind: 1
+    intendedSolution: F 2x R F 5x F R F Playful F R F 2x Si F 2x
+  - id: S5-05
+    stage: 4
+    title: Big loop
+    instruction: All the way around! Stop on both special tiles.
+    requireMovement: 1
+    requireMultiplier: 1
+    requireEmotion: 1
+    requireSound: 1
+    visibleBlocks: 15
+    start: {x: 6, y: 0}
+    path:
+    - {x: 5, y: 0}
+    - {x: 4, y: 0}
+    - {x: 3, y: 0}
+    - {x: 2, y: 0}
+    - {x: 1, y: 0}
+    - {x: 0, y: 0}
+    - {x: 0, y: 1}
+    - {x: 0, y: 2}
+    - {x: 0, y: 3}
+    - {x: 1, y: 3}
+    - {x: 2, y: 3}
+    - {x: 3, y: 3}
+    - {x: 4, y: 3}
+    - {x: 5, y: 3}
+    - {x: 6, y: 3}
+    goal: {x: 6, y: 2}
+    cityTiles:
+    - cell: {x: 3, y: 0}
+      kind: 0
+    - cell: {x: 4, y: 3}
+      kind: 2
+    cues:
+    - cell: {x: 3, y: 3}
+      kind: 0
+    - cell: {x: 6, y: 3}
+      kind: 1
+    intendedSolution: L F 5x F R F 3x R F 3x Sleepy F 3x Do R F
+  - id: S5-06
+    stage: 4
+    title: Mountains
+    instruction: Two mountains! Sing and feel on the right tiles.
+    requireMovement: 1
+    requireMultiplier: 1
+    requireEmotion: 1
+    requireSound: 1
+    visibleBlocks: 15
+    start: {x: 0, y: 0}
+    path:
+    - {x: 1, y: 0}
+    - {x: 1, y: 1}
+    - {x: 1, y: 2}
+    - {x: 1, y: 3}
+    - {x: 2, y: 3}
+    - {x: 3, y: 3}
+    - {x: 3, y: 2}
+    - {x: 3, y: 1}
+    - {x: 3, y: 0}
+    - {x: 4, y: 0}
+    - {x: 5, y: 0}
+    - {x: 5, y: 1}
+    - {x: 5, y: 2}
+    goal: {x: 5, y: 3}
+    cityTiles:
+    - cell: {x: 2, y: 3}
+      kind: 1
+    - cell: {x: 4, y: 0}
+      kind: 0
+    cues:
+    - cell: {x: 1, y: 2}
+      kind: 0
+    - cell: {x: 5, y: 0}
+      kind: 1
+    intendedSolution: R F L F 2x Angry F R F 2x R F 3x L F 2x Re L F 3x
+  - id: S5-07
+    stage: 4
+    title: Snake city
+    instruction: A snake through the city. Find both special tiles!
+    requireMovement: 1
+    requireMultiplier: 1
+    requireEmotion: 1
+    requireSound: 1
+    visibleBlocks: 15
+    start: {x: 0, y: 0}
+    path:
+    - {x: 0, y: 1}
+    - {x: 0, y: 2}
+    - {x: 0, y: 3}
+    - {x: 1, y: 3}
+    - {x: 2, y: 3}
+    - {x: 2, y: 2}
+    - {x: 2, y: 1}
+    - {x: 2, y: 0}
+    - {x: 3, y: 0}
+    - {x: 4, y: 0}
+    - {x: 4, y: 1}
+    - {x: 4, y: 2}
+    - {x: 4, y: 3}
+    - {x: 5, y: 3}
+    goal: {x: 6, y: 3}
+    cityTiles:
+    - cell: {x: 1, y: 3}
+      kind: 2
+    - cell: {x: 3, y: 0}
+      kind: 0
+    - cell: {x: 5, y: 3}
+      kind: 1
+    cues:
+    - cell: {x: 4, y: 2}
+      kind: 0
+    - cell: {x: 4, y: 3}
+      kind: 1
+    intendedSolution: F 3x R F 2x R F 3x L F 2x L F 2x Dizzy F Mi R F 2x
+  - id: S5-08
+    stage: 4
+    title: Music city
+    instruction: Zoom around town. Sing on the music tile, smile on the smiley tile!
+    requireMovement: 1
+    requireMultiplier: 1
+    requireEmotion: 1
+    requireSound: 1
+    visibleBlocks: 15
+    start: {x: 0, y: 0}
+    path:
+    - {x: 1, y: 0}
+    - {x: 2, y: 0}
+    - {x: 3, y: 0}
+    - {x: 4, y: 0}
+    - {x: 5, y: 0}
+    - {x: 6, y: 0}
+    - {x: 6, y: 1}
+    - {x: 6, y: 2}
+    - {x: 6, y: 3}
+    - {x: 5, y: 3}
+    - {x: 4, y: 3}
+    - {x: 3, y: 3}
+    - {x: 2, y: 3}
+    goal: {x: 1, y: 3}
+    cityTiles:
+    - cell: {x: 3, y: 0}
+      kind: 0
+    - cell: {x: 3, y: 3}
+      kind: 2
+    cues:
+    - cell: {x: 4, y: 3}
+      kind: 0
+    - cell: {x: 2, y: 0}
+      kind: 1
+    intendedSolution: R F 2x Fa F 4x L F 3x L F 2x Sad F 3x
+  - id: S5-09
+    stage: 4
+    title: Round the block
+    instruction: Round the block! Stop on both special tiles.
+    requireMovement: 1
+    requireMultiplier: 1
+    requireEmotion: 1
+    requireSound: 1
+    visibleBlocks: 15
+    start: {x: 2, y: 0}
+    path:
+    - {x: 1, y: 0}
+    - {x: 0, y: 0}
+    - {x: 0, y: 1}
+    - {x: 0, y: 2}
+    - {x: 0, y: 3}
+    - {x: 1, y: 3}
+    - {x: 2, y: 3}
+    - {x: 3, y: 3}
+    - {x: 4, y: 3}
+    - {x: 5, y: 3}
+    - {x: 5, y: 2}
+    - {x: 5, y: 1}
+    - {x: 5, y: 0}
+    goal: {x: 6, y: 0}
+    cityTiles:
+    - cell: {x: 1, y: 0}
+      kind: 1
+    - cell: {x: 3, y: 3}
+      kind: 2
+    cues:
+    - cell: {x: 0, y: 1}
+      kind: 0
+    - cell: {x: 0, y: 0}
+      kind: 1
+    intendedSolution: L F 2x Sol R F Happy F 2x R F 5x R F 3x L F
+  - id: S5-10
+    stage: 4
+    title: Champion!
+    instruction: The ultimate challenge! Sing and feel on the right tiles, champion!
+    requireMovement: 1
+    requireMultiplier: 1
+    requireEmotion: 1
+    requireSound: 1
+    visibleBlocks: 15
+    start: {x: 0, y: 0}
+    path:
+    - {x: 0, y: 1}
+    - {x: 0, y: 2}
+    - {x: 0, y: 3}
+    - {x: 1, y: 3}
+    - {x: 2, y: 3}
+    - {x: 2, y: 2}
+    - {x: 2, y: 1}
+    - {x: 2, y: 0}
+    - {x: 3, y: 0}
+    - {x: 4, y: 0}
+    - {x: 4, y: 1}
+    - {x: 4, y: 2}
+    - {x: 4, y: 3}
+    - {x: 5, y: 3}
+    - {x: 6, y: 3}
+    - {x: 6, y: 2}
+    - {x: 6, y: 1}
+    goal: {x: 6, y: 0}
+    cityTiles:
+    - cell: {x: 1, y: 3}
+      kind: 2
+    - cell: {x: 3, y: 0}
+      kind: 1
+    - cell: {x: 5, y: 3}
+      kind: 0
+    cues:
+    - cell: {x: 6, y: 3}
+      kind: 0
+    - cell: {x: 4, y: 0}
+      kind: 1
+    intendedSolution: F 3x R F 2x R F 3x L F 2x La L F 3x R F 2x Surprise R F 3x

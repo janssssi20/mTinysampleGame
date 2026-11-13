@@ -10,19 +10,27 @@ public enum SimResult
     MissingMovement,
     MissingMultiplier,
     MissingEmotion,
+    MissingSound,
+    MissedCue,
     BadToken
 }
 
 // Walks a written program across a mission's grid the same way the
 // robot does in game, so mission data can be checked without play mode.
 //
-// Tokens: F, L, R, 2x-5x (repeats the previous token), and emotion names.
+// Tokens: F, L, R, 2x-5x (repeats the previous token), emotion names and
+// note names (Do Re Mi Fa Sol La Si HighDo).
 // The robot starts facing up; L turns counter-clockwise.
 public static class MissionSimulator
 {
     private static readonly HashSet<string> EmotionTokens = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
     {
         "Happy", "Sad", "Angry", "Surprise", "Dizzy", "Sleepy", "Playful"
+    };
+
+    private static readonly HashSet<string> NoteTokens = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+    {
+        "Do", "Re", "Mi", "Fa", "Sol", "La", "Si", "HighDo"
     };
 
     public static SimResult Run(MissionDefinition mission, string program)
@@ -32,6 +40,8 @@ public static class MissionSimulator
         bool movementUsed = false;
         bool multiplierUsed = false;
         bool emotionUsed = false;
+        bool soundUsed = false;
+        var played = new HashSet<(Vector2Int, CueKind)>();
 
         Vector2Int position = mission.start;
         Vector2Int facing = Vector2Int.up;
@@ -46,7 +56,7 @@ public static class MissionSimulator
                 return SimResult.BadToken;
             }
 
-            if (!IsMove(token) && !EmotionTokens.Contains(token))
+            if (!IsMove(token) && !EmotionTokens.Contains(token) && !NoteTokens.Contains(token))
             {
                 return SimResult.BadToken;
             }
@@ -63,6 +73,14 @@ public static class MissionSimulator
             if (EmotionTokens.Contains(token))
             {
                 emotionUsed = true;
+                played.Add((position, CueKind.Feeling));
+                continue;
+            }
+
+            if (NoteTokens.Contains(token))
+            {
+                soundUsed = true;
+                played.Add((position, CueKind.Music));
                 continue;
             }
 
@@ -90,7 +108,20 @@ public static class MissionSimulator
 
                         if (position == mission.goal)
                         {
-                            return CheckRequirements(mission, movementUsed, multiplierUsed, emotionUsed);
+                            SimResult result = CheckRequirements(mission, movementUsed, multiplierUsed, emotionUsed, soundUsed);
+
+                            if (result == SimResult.ReachedGoal && mission.cues != null)
+                            {
+                                foreach (MissionCue cue in mission.cues)
+                                {
+                                    if (cue != null && !played.Contains((cue.cell, cue.kind)))
+                                    {
+                                        return SimResult.MissedCue;
+                                    }
+                                }
+                            }
+
+                            return result;
                         }
 
                         break;
@@ -107,7 +138,7 @@ public static class MissionSimulator
     }
 
     private static SimResult CheckRequirements(
-        MissionDefinition mission, bool movementUsed, bool multiplierUsed, bool emotionUsed)
+        MissionDefinition mission, bool movementUsed, bool multiplierUsed, bool emotionUsed, bool soundUsed)
     {
         if (mission.requireMovement && !movementUsed)
         {
@@ -122,6 +153,11 @@ public static class MissionSimulator
         if (mission.requireEmotion && !emotionUsed)
         {
             return SimResult.MissingEmotion;
+        }
+
+        if (mission.requireSound && !soundUsed)
+        {
+            return SimResult.MissingSound;
         }
 
         return SimResult.ReachedGoal;

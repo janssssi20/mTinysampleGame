@@ -21,6 +21,7 @@ public class GoalCard : MonoBehaviour
     public GameObject moveHint;
     public GameObject multiplierHint;
     public GameObject emotionHint;
+    public GameObject soundHint;
     public Image goalTile;
     public Sprite parkGoal;
     public Sprite cityGoal;
@@ -57,11 +58,12 @@ public class GoalCard : MonoBehaviour
 
         if (title != null) title.text = mission.title;
         if (instruction != null) instruction.text = mission.instruction;
-        if (best != null) best.text = "Best: " + MissionSimulator.CountBlocks(mission.intendedSolution) + " blocks";
+        if (best != null) best.text = "Best: " + board.BestBlocks + " blocks";
 
         if (moveHint != null) moveHint.SetActive(mission.requireMovement);
         if (multiplierHint != null) multiplierHint.SetActive(mission.requireMultiplier);
         if (emotionHint != null) emotionHint.SetActive(mission.requireEmotion);
+        if (soundHint != null) soundHint.SetActive(mission.requireSound);
         if (goalTile != null) goalTile.sprite = board.IsCityBoard ? cityGoal : parkGoal;
     }
 }

@@ -75,6 +75,51 @@ public class MissionSimulatorTests
     }
 
     [Test]
+    public void Run_RequiresSound_NoteCounts()
+    {
+        MissionDefinition mission = StraightUp();
+        mission.requireSound = true;
+
+        Assert.AreEqual(SimResult.ReachedGoal, MissionSimulator.Run(mission, "Do F 3x"));
+    }
+
+    [Test]
+    public void Run_RequiresSoundButNoneUsed_MissingSound()
+    {
+        MissionDefinition mission = StraightUp();
+        mission.requireSound = true;
+
+        Assert.AreEqual(SimResult.MissingSound, MissionSimulator.Run(mission, "Happy F 3x"));
+    }
+
+    [Test]
+    public void Run_FeelingOnMarkedTile_Counts()
+    {
+        MissionDefinition mission = StraightUp();
+        mission.cues.Add(new MissionCue { cell = new Vector2Int(2, 1), kind = CueKind.Feeling });
+
+        Assert.AreEqual(SimResult.ReachedGoal, MissionSimulator.Run(mission, "F Happy F 2x"));
+    }
+
+    [Test]
+    public void Run_FeelingElsewhere_MissedCue()
+    {
+        MissionDefinition mission = StraightUp();
+        mission.cues.Add(new MissionCue { cell = new Vector2Int(2, 1), kind = CueKind.Feeling });
+
+        Assert.AreEqual(SimResult.MissedCue, MissionSimulator.Run(mission, "Happy F 3x"));
+    }
+
+    [Test]
+    public void Run_NoteOnSmileyTile_DoesNotCount()
+    {
+        MissionDefinition mission = StraightUp();
+        mission.cues.Add(new MissionCue { cell = new Vector2Int(2, 1), kind = CueKind.Feeling });
+
+        Assert.AreEqual(SimResult.MissedCue, MissionSimulator.Run(mission, "F Do F 2x"));
+    }
+
+    [Test]
     public void Run_UnknownToken_BadToken()
     {
         Assert.AreEqual(SimResult.BadToken, MissionSimulator.Run(StraightUp(), "F Jump"));

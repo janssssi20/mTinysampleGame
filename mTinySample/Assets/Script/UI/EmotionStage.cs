@@ -428,6 +428,18 @@ public class EmotionStage : MonoBehaviour
         return tmp;
     }
 
+    // A sound effect at a moment of the story (through the Sounds switch)
+    private void Sound(float at, Sfx sound)
+    {
+        bool played = false;
+        updaters.Add(t =>
+        {
+            if (played || t < at || t <= 0f) return;
+            played = true;
+            if (Application.isPlaying) AudioManager.Play(sound);
+        });
+    }
+
     private void Faces(Image img, params (float t, Sprite s)[] seq)
     {
         if (img == null || seq.Length == 0) return;
@@ -985,6 +997,16 @@ public class EmotionStage : MonoBehaviour
         Sparkle(400, 128, 1.75f, Hex("FFC93C"));
         Sparkle(330, 150, 1.85f, Hex("4A9DFF"));
         SpeechBubble("On duty!", 420, 140, 3.8f, 4.8f, Hex("2E5AAC"));
+
+        Sound(0.05f, Sfx.Step);
+        Sound(0.55f, Sfx.Step);
+        Sound(1.05f, Sfx.Step);
+        Sound(1.7f, Sfx.Sparkle);
+        Sound(1.9f, Sfx.DoorChime);
+        Sound(3.25f, Sfx.Thud);
+        Sound(3.3f, Sfx.PoliceSiren);
+        Sound(3.8f, Sfx.Tap);
+        Sound(4.0f, Sfx.Sparkle);
         Sparkle(532, 200, 4.0f, Hex("FFC93C"), 30);
         Sparkle(470, 190, 4.2f, Hex("3DBE6B"));
     }
@@ -1034,6 +1056,14 @@ public class EmotionStage : MonoBehaviour
             Anim(h, K(t, o: 0, y: 0, s: .3f), K(t + .2f, o: 1, s: 1.1f), K(Mathf.Min(D, t + 1f), o: 0, y: -140, x: k % 2 == 1 ? 20 : -20));
         }
         SpeechBubble("Help is here!", 300, 120, 3.9f, 4.9f, Hex("FF4D5E"));
+
+        Sound(0.01f, Sfx.AmbulanceSiren);
+        Sound(1.65f, Sfx.Turn);
+        Sound(2.5f, Sfx.DoorSlide);
+        Sound(3.3f, Sfx.Heartbeat);
+        Sound(3.45f, Sfx.DoorSlide);
+        Sound(3.85f, Sfx.Sparkle);
+        Sound(3.9f, Sfx.Tap);
     }
 
     private void BuildCrossing()
@@ -1078,6 +1108,13 @@ public class EmotionStage : MonoBehaviour
         Anim(ck, K(4.2f, o: 0, s: .2f, r: -20), K(4.4f, o: 1, s: 1.3f, r: 8), K(4.6f, s: 1, r: 0));
         SpeechBubble("Safe!", 420, 110, 4.25f, 4.95f, Hex("3DBE6B"));
         ConfettiRain(4.2f, 16);
+
+        Sound(0.35f, Sfx.CarWhoosh);
+        Sound(1.15f, Sfx.SignalWait);
+        Sound(1.3f, Sfx.CarWhoosh);
+        Sound(1.2f, Sfx.Tap);
+        Sound(2.6f, Sfx.SignalWalk);
+        Sound(4.2f, Sfx.Win);
     }
 
     private void BuildTheft()
@@ -1116,6 +1153,14 @@ public class EmotionStage : MonoBehaviour
         Flash(1.68f, 3.3f, Hex("3D7BFF"), 240, -40, 420, 480, .36f, z: 5);
         SpeechBubble("Stop, thief!", 330, 130, 1.65f, 2.6f, Hex("E53935"));
         SpeechBubble("Got it back!", 250, 120, 4.2f, 4.95f, Hex("3DBE6B"));
+
+        Sound(0.15f, Sfx.Sneak);
+        Sound(1.3f, Sfx.Whistle);
+        Sound(1.55f, Sfx.PoliceSiren);
+        Sound(1.65f, Sfx.Tap);
+        Sound(2.75f, Sfx.Thud);
+        Sound(3.6f, Sfx.Turn);
+        Sound(4.2f, Sfx.Cheer);
         Sparkle(80, 240, 4.2f, Hex("FFC93C"), 30);
         Sparkle(120, 210, 4.35f, Color.white);
         Sparkle(60, 200, 4.5f, Hex("FFC93C"));
@@ -1161,6 +1206,15 @@ public class EmotionStage : MonoBehaviour
         Sparkle(480, 200, 4.25f, Hex("3DBE6B"));
         Sparkle(410, 200, 4.35f, Hex("FF7EB6"));
         SpeechBubble("All fixed!", 360, 90, 4.3f, 4.95f, Hex("3DBE6B"));
+
+        Sound(0.15f, Sfx.CarWhoosh);
+        Sound(1.05f, Sfx.Bonk);
+        Sound(1.25f, Sfx.Dizzy);
+        Sound(1.85f, Sfx.Thud);
+        Sound(2.1f, Sfx.Tap);
+        Sound(3.75f, Sfx.Turn);
+        Sound(4.15f, Sfx.Sparkle);
+        Sound(4.5f, Sfx.Win);
     }
 
     // =========================================================

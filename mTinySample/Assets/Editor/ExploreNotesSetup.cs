@@ -6,12 +6,13 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-// Adds note blocks to Explore mode (World scene): Do Re Mi Fa Sol La Si
-// and a high Do, in the same palette as the other command blocks. Each
+// Adds note blocks (Do Re Mi Fa Sol La Si and a high Do) to the palette
+// of Explore mode (World scene) and of missions (Mission scene). Each
 // block adds a note to the program; when it runs, mTiny sings it.
 public static class ExploreNotesSetup
 {
     private const string WorldPath = "Assets/Scenes/World.unity";
+    private const string MissionPath = "Assets/Scenes/Mission.unity";
     private const string NotesFolder = "Assets/Image/mtiny command blocks/Notes/";
 
     // NoteType order -> the owner's art. HighDo is the Do block with an
@@ -24,9 +25,46 @@ public static class ExploreNotesSetup
     [MenuItem("mTiny/Setup/Add Note Blocks to Explore")]
     public static void AddNoteBlocks()
     {
+        AddNoteBlocks(WorldPath);
+    }
+
+    // Stages 4 and 5 use sound blocks: the mission palette gets them too,
+    // shown only when a mission's visible blocks include Sound
+    [MenuItem("mTiny/Setup/Add Note Blocks to Missions")]
+    public static void AddNoteBlocksToMissions()
+    {
+        Scene scene = AddNoteBlocks(MissionPath);
+
+        MissionBoardBuilder builder = Object.FindFirstObjectByType<MissionBoardBuilder>(FindObjectsInactive.Include);
+        RectTransform palette = (RectTransform)Find(scene, "commandblock_group");
+        builder.soundBlocks = palette.GetComponentsInChildren<CommandButton>(true)
+            .Where(c => c.name.StartsWith("note"))
+            .Select(c => c.gameObject)
+            .ToArray();
+
+        // A Do block on the instruction card for missions that need a sound
+        if (builder.emotionHint != null)
+        {
+            Transform row = builder.emotionHint.transform.parent;
+            Transform old = row.Find("soundHint");
+            if (old != null) Object.DestroyImmediate(old.gameObject);
+            GameObject hint = Object.Instantiate(builder.emotionHint, row);
+            hint.name = "soundHint";
+            hint.GetComponent<Image>().sprite = AssetDatabase.LoadAssetAtPath<Sprite>(NotesFolder + "Layer 24.png");
+            builder.soundHint = hint;
+        }
+
+        EditorUtility.SetDirty(builder);
+        EditorSceneManager.MarkSceneDirty(scene);
+        EditorSceneManager.SaveScene(scene);
+        Debug.Log("[mTiny] Mission palette has " + builder.soundBlocks.Length + " note blocks.");
+    }
+
+    private static Scene AddNoteBlocks(string scenePath)
+    {
         MatchImportSettings(NotesFolder + "HighDo.png", NotesFolder + "Layer 24.png");
 
-        Scene scene = EditorSceneManager.OpenScene(WorldPath, OpenSceneMode.Single);
+        Scene scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
 
         CommandManager commands = Object.FindFirstObjectByType<CommandManager>(FindObjectsInactive.Include);
         CommandButtonManager buttonManager = Object.FindFirstObjectByType<CommandButtonManager>(FindObjectsInactive.Include);
@@ -45,15 +83,25 @@ public static class ExploreNotesSetup
         buttonManager.commandButtons.RemoveAll(b => b == null || b.name.StartsWith("note"));
         Transform oldTray = Find(scene, "noteblock_group");
         if (oldTray != null) Object.DestroyImmediate(oldTray.gameObject);
-        foreach (Transform old in content.Cast<Transform>().Where(t => t.name.StartsWith("note")).ToList())
+        foreach (Transform old in palette.GetComponentsInChildren<Transform>(true)
+                     .Where(t => t.name.StartsWith("note") && t.GetComponent<CommandButton>() != null).ToList())
         {
             Object.DestroyImmediate(old.gameObject);
         }
 
+        // A palette already sorted into families gets its Music group from
+        // the redesign setup; the blocks wait at the end of the list
+        Transform musicGroup = content.Find("group_Music");
+        if (musicGroup != null) Object.DestroyImmediate(musicGroup.gameObject);
+
         // ---------------- PALETTE ----------------
         // Three columns so all 23 blocks fit without scrolling
-        palette.sizeDelta = new Vector2(440f, palette.sizeDelta.y);
-        content.GetComponent<GridLayoutGroup>().constraintCount = 3;
+        GridLayoutGroup grid = content.GetComponent<GridLayoutGroup>();
+        if (grid != null)
+        {
+            palette.sizeDelta = new Vector2(440f, palette.sizeDelta.y);
+            grid.constraintCount = 3;
+        }
 
         // ---------------- BLOCKS ----------------
         // After the feelings, in scale order
@@ -95,7 +143,8 @@ public static class ExploreNotesSetup
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
 
-        Debug.Log("[mTiny] " + names.Length + " note blocks added to the Explore palette.");
+        Debug.Log("[mTiny] " + names.Length + " note blocks added to " + scenePath);
+        return scene;
     }
 
     // Imports a drawn block exactly like the owner's art (sprite, filtering, size)

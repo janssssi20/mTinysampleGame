@@ -8,7 +8,23 @@ public enum Sfx
     Turn,
     Oops,
     Win,
-    Cheer
+    Cheer,
+
+    // Scenario stories (police, hospital, crossing, theft, bumped)
+    PoliceSiren,
+    AmbulanceSiren,
+    CarWhoosh,
+    SignalWait,
+    SignalWalk,
+    DoorChime,
+    DoorSlide,
+    Heartbeat,
+    Bonk,
+    Thud,
+    Dizzy,
+    Sparkle,
+    Sneak,
+    Whistle
 }
 
 // Background music and sound effects for every scene.
