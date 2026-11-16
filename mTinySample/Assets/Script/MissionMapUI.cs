@@ -45,6 +45,35 @@ public class MissionMapUI : MonoBehaviour
     public MissionCatalog catalog;
 
     // =========================================================
+    // UNLOCK ALL STAGES (SAVED SETTING)
+    // =========================================================
+    //
+    // Controlled by the "Unlock all Stages" Toggle in Settings (see
+    // UnlockAllToggle). It is static and saved on purpose: Settings changes it
+    // while this map screen is hidden, so it can't depend on this component
+    // being active. The map reads it whenever it opens.
+
+    private const string UnlockAllKey = "MissionMap.UnlockAllStages";
+
+    public static event System.Action UnlockAllChanged;
+
+    public static bool UnlockAll
+    {
+        get { return PlayerPrefs.GetInt(UnlockAllKey, 0) == 1; }
+        set
+        {
+            if (UnlockAll == value)
+            {
+                return;
+            }
+
+            PlayerPrefs.SetInt(UnlockAllKey, value ? 1 : 0);
+            PlayerPrefs.Save();
+            UnlockAllChanged?.Invoke();
+        }
+    }
+
+    // =========================================================
     // LAYOUT
     // =========================================================
 
@@ -118,12 +147,20 @@ public class MissionMapUI : MonoBehaviour
             popup.SetActive(false);
         }
 
+        // The setting can change while this screen is open
+        UnlockAllChanged += OnUnlockAllChanged;
+
         Refresh();
 
         // Open on the next mission to play
         SnapTo(NodeX(StageMapModel.NextMissionIndex(Progress, catalog)));
 
         StartCoroutine(CelebrateNewTrophies());
+    }
+
+    private void OnDisable()
+    {
+        UnlockAllChanged -= OnUnlockAllChanged;
     }
 
     private void Update()
@@ -144,6 +181,46 @@ public class MissionMapUI : MonoBehaviour
 
 
     // =========================================================
+    // UNLOCK ALL STAGES - REACTION
+    // =========================================================
+    //
+    // Only runs while this screen is open. When it is hidden, OnEnable
+    // refreshes the map with the current setting the next time it shows.
+
+    private void OnUnlockAllChanged()
+    {
+        // A mission card that was open may now point at a locked mission
+        if (selectedIndex >= 0 && StateOf(selectedIndex) == NodeState.Locked)
+        {
+            ClosePopup();
+        }
+
+        Refresh();
+    }
+
+
+    // =========================================================
+    // LOCK CHECKS
+    // =========================================================
+    //
+    // Every lock check on this screen goes through these two methods, so the
+    // "Unlock all Stages" setting applies everywhere at once.
+
+    private bool IsStageOpen(MissionStage stage)
+    {
+        return UnlockAll || Progress.IsStageUnlocked(stage);
+    }
+
+    private NodeState StateOf(int index)
+    {
+        NodeState state = StageMapModel.GetNodeState(Progress, index);
+
+        // A mission opened by the setting looks playable (not done, no stars).
+        return UnlockAll && state == NodeState.Locked ? NodeState.Next : state;
+    }
+
+
+    // =========================================================
     // REFRESH
     // =========================================================
 
@@ -158,7 +235,7 @@ public class MissionMapUI : MonoBehaviour
         {
             MissionStage stage = (MissionStage)s;
             StageCard card = stageCards[s];
-            bool unlocked = Progress.IsStageUnlocked(stage);
+            bool unlocked = IsStageOpen(stage);
             TrophyTier tier = StageMapModel.GetTrophy(Progress, catalog, stage);
 
             card.starsText.text = StageMapModel.StarCountText(
@@ -183,7 +260,7 @@ public class MissionMapUI : MonoBehaviour
         for (int i = 0; i < nodes.Length && i < catalog.Count; i++)
         {
             PathNode node = nodes[i];
-            NodeState state = StageMapModel.GetNodeState(Progress, i);
+            NodeState state = StateOf(i);
             int best = Progress.GetBestStars(i);
 
             node.face.color =
@@ -207,7 +284,7 @@ public class MissionMapUI : MonoBehaviour
         }
 
         // START bubble and mTiny stand at the next mission
-        bool hasNext = StageMapModel.GetNodeState(Progress, next) == NodeState.Next;
+        bool hasNext = StateOf(next) == NodeState.Next;
         RectTransform nextRect = (RectTransform)nodes[next].button.transform;
 
         if (startBubble != null)
@@ -241,7 +318,7 @@ public class MissionMapUI : MonoBehaviour
 
     public void OnStagePressed(int stage)
     {
-        if (!Progress.IsStageUnlocked((MissionStage)stage))
+        if (!IsStageOpen((MissionStage)stage))
         {
             StartCoroutine(Wiggle(stageCards[stage].lockIcon.transform));
             return;
@@ -285,7 +362,7 @@ public class MissionMapUI : MonoBehaviour
 
     public void OnNodePressed(int index)
     {
-        if (StageMapModel.GetNodeState(Progress, index) == NodeState.Locked)
+        if (StateOf(index) == NodeState.Locked)
         {
             StartCoroutine(Wiggle(nodes[index].lockIcon.transform));
             return;
