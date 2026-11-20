@@ -25,8 +25,14 @@ public sealed class MissionProgress
     private const string CelebratedKey = "mtiny.celebrated";
     private const string TrophyKeyPrefix = "mtiny.trophy.";
 
+    // The "Unlock all Stages" switch in Settings (saved here, read by the
+    // mission map and the costumes)
+    public const string UnlockAllKey = "MissionMap.UnlockAllStages";
+
     private readonly MissionCatalog catalog;
     private readonly IProgressStore store;
+
+    public bool UnlockAllOn => store.GetInt(UnlockAllKey, 0) == 1;
 
     public MissionProgress(MissionCatalog catalog, IProgressStore store)
     {
@@ -144,6 +150,8 @@ public sealed class MissionProgress
         }
 
         store.DeleteKey(CelebratedKey);
+        CostumeRules.Reset(store);
+        BackgroundRules.Reset(store);
         store.Save();
     }
 }

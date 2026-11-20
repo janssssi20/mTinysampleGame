@@ -16,6 +16,12 @@ public class MissionMapUI : MonoBehaviour
         public GameObject lockIcon;
         public Image trophyIcon;
         public GameObject highlight;
+
+        [Header("Costume progress")]
+        public Image maskIcon;
+        public Image progressFill;
+        public TMP_Text progressText;
+        public GameObject gotBadge;
     }
 
     [System.Serializable]
@@ -53,7 +59,7 @@ public class MissionMapUI : MonoBehaviour
     // while this map screen is hidden, so it can't depend on this component
     // being active. The map reads it whenever it opens.
 
-    private const string UnlockAllKey = "MissionMap.UnlockAllStages";
+    private const string UnlockAllKey = MissionProgress.UnlockAllKey;
 
     public static event System.Action UnlockAllChanged;
 
@@ -84,6 +90,8 @@ public class MissionMapUI : MonoBehaviour
     public StageTrophy[] trophies = new StageTrophy[MissionStages.Count];
     public RectTransform startBubble;
     public RectTransform mtinyMarker;
+    public Image mtinyMarkerImage;                                       // mTiny on the map, in the chosen costume
+    public Sprite[] costumeMarkers = new Sprite[CostumeRules.Count];     // index = Costume
 
     [Header("Side")]
     public StageCard[] stageCards = new StageCard[MissionStages.Count];
@@ -243,6 +251,22 @@ public class MissionMapUI : MonoBehaviour
             card.lockIcon.SetActive(!unlocked);
             card.button.image.color = unlocked ? Color.white : lockedCardTint;
 
+            // The stage's costume: a bar that fills one step per level won
+            if (card.progressFill != null)
+            {
+                int won = CostumeRules.LevelsWon(Progress, catalog, stage);
+                int total = Mathf.Max(1, CostumeRules.LevelsInStage(catalog, stage));
+                bool got = won >= total;
+                card.progressFill.fillAmount = (float)won / total;
+                if (card.progressText != null)
+                {
+                    card.progressText.gameObject.SetActive(!got);
+                    card.progressText.text = won + "/" + total;
+                }
+                if (card.gotBadge != null) card.gotBadge.SetActive(got);
+                if (card.maskIcon != null) card.maskIcon.color = unlocked ? Color.white : new Color(1f, 1f, 1f, 0.45f);
+            }
+
             if (card.trophyIcon != null)
             {
                 card.trophyIcon.gameObject.SetActive(tier != TrophyTier.None);
@@ -298,6 +322,15 @@ public class MissionMapUI : MonoBehaviour
             mtinyMarker.gameObject.SetActive(hasNext);
             mtinyMarker.anchoredPosition = nextRect.anchoredPosition + new Vector2(140f, -10f);
         }
+        WearCostumeOnMarker();
+    }
+
+    // mTiny on the path wears the costume picked in Customize
+    private void WearCostumeOnMarker()
+    {
+        if (mtinyMarkerImage == null || costumeMarkers == null) return;
+        int c = (int)CostumeRules.Selected(new PlayerPrefsProgressStore(), Progress, catalog);
+        if (c < costumeMarkers.Length && costumeMarkers[c] != null) mtinyMarkerImage.sprite = costumeMarkers[c];
     }
 
     private Color TrophyColor(TrophyTier tier)

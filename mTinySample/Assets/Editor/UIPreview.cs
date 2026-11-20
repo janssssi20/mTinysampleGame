@@ -81,6 +81,62 @@ public static class UIPreview
         Debug.Log("[mTiny] Previews written to " + Path.GetFullPath(OutDir));
     }
 
+    // Title in three worlds, Settings, Customize and the reward card.
+    // Pictures are set directly: nothing is saved to the player's progress.
+    [MenuItem("mTiny/Preview/Capture Backgrounds")]
+    public static void CaptureWorlds()
+    {
+        Directory.CreateDirectory(OutDir);
+        Scene menu = EditorSceneManager.OpenScene("Assets/Scenes/MainMenu.unity", OpenSceneMode.Single);
+        TitleBackground title = UnityEngine.Object.FindFirstObjectByType<TitleBackground>(FindObjectsInactive.Include);
+        title.picture.sprite = title.worlds[(int)Costume.None];
+        Capture("w1_title_park");
+        title.picture.sprite = title.worlds[(int)Costume.Golden];
+        title.logo.color = title.logoOnDark;
+        Capture("w2_title_champion");
+        title.picture.sprite = title.worlds[(int)Costume.Chicken];
+        title.logo.color = title.logoOnLight;
+        Capture("w3_title_farm");
+
+        GameObject settings = FindPanel(menu, "settingsPanel");
+        settings.SetActive(true);
+        Capture("w4_settings");
+        settings.SetActive(false);
+
+        BackgroundsUI worlds = UnityEngine.Object.FindFirstObjectByType<BackgroundsUI>(FindObjectsInactive.Include);
+        worlds.panel.SetActive(true);
+        for (int i = 0; i < worlds.cards.Length; i++)
+        {
+            worlds.cards[i].lockCover.SetActive(i > 2);
+            worlds.cards[i].lockText.text = "Finish Stage " + i;
+            worlds.cards[i].selected.SetActive(i == 2);
+        }
+        worlds.backdrop.sprite = worlds.cards[2].picture.sprite;
+        DressUpUI costumes = worlds.panel.GetComponent<DressUpUI>();
+        if (costumes != null)
+        {
+            for (int i = 0; i < costumes.cards.Length; i++)
+            {
+                costumes.cards[i].lockIcon.SetActive(i > 2);
+                costumes.cards[i].selected.SetActive(i == 1);
+                costumes.cards[i].hint.text = i == 0 ? "Always yours" : (i > 2 ? "Finish Stage " + i : MissionStages.Name((MissionStage)(i - 1)));
+                costumes.cards[i].progressFill.transform.parent.gameObject.SetActive(i > 2);
+            }
+            costumes.costumeName.text = "Panda";
+        }
+        Capture("w5_customize");
+        worlds.panel.SetActive(false);
+
+        Scene mission = EditorSceneManager.OpenScene("Assets/Scenes/Mission.unity", OpenSceneMode.Single);
+        CostumeRewards rewards = UnityEngine.Object.FindFirstObjectByType<CostumeRewards>(FindObjectsInactive.Include);
+        rewards.newPicture.sprite = rewards.costumePictures[(int)Costume.Chicken];
+        rewards.newWorld.sprite = rewards.worldPictures[(int)Costume.Chicken];
+        rewards.newMessage.text = "You finished <b>" + MissionStages.Name(MissionStage.Stage2) + "</b>. You got the <b>Chicken</b> mask and the <b>Happy Farm</b>!";
+        rewards.newCard.SetActive(true);
+        Capture("w6_reward");
+        Debug.Log("[mTiny] Background previews written to " + Path.GetFullPath(OutDir));
+    }
+
     [MenuItem("mTiny/Preview/Capture Play Aids")]
     public static void CapturePlayAids()
     {

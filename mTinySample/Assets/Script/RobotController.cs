@@ -71,6 +71,12 @@ public class RobotController : MonoBehaviour
             // Collisions must never spin the robot off the grid
             rb.freezeRotation = true;
         }
+
+        // mTiny wears the costume the child picked in the Costume room
+        if (GetComponent<CostumeWearer>() == null)
+        {
+            gameObject.AddComponent<CostumeWearer>();
+        }
     }
 
 

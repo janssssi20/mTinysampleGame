@@ -26,6 +26,9 @@ public class MissionRunner : MonoBehaviour
     public GameObject finishPanel;
     public GameObject nextButton;
 
+    [Tooltip("The finish card's mask progress row and the New mask! card.")]
+    public CostumeRewards costumeRewards;
+
     // =========================================================
     // CELEBRATION PANEL
     // =========================================================
@@ -66,8 +69,20 @@ public class MissionRunner : MonoBehaviour
             return;
         }
 
+        MissionStage stage = catalog.Get(board.CurrentIndex).stage;
+        int wonBefore = CostumeRules.LevelsWon(progress, catalog, stage);
+
         MissionWinOutcome outcome =
             MissionWinOutcome.Decide(progress, catalog, board.CurrentIndex, stars);
+
+        // The stage's costume: the bar moves on, and a full bar earns it
+        if (costumeRewards != null)
+        {
+            int wonAfter = CostumeRules.LevelsWon(progress, catalog, stage);
+            bool earned = CostumeRules.TakeNewUnlock(progress, catalog, new PlayerPrefsProgressStore(),
+                CostumeRules.ForStage(stage));
+            costumeRewards.Show(stage, wonBefore, wonAfter, CostumeRules.LevelsInStage(catalog, stage), earned);
+        }
 
         if (nextButton != null)
         {
