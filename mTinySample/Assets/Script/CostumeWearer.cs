@@ -56,7 +56,7 @@ public class CostumeWearer : MonoBehaviour
         if (maskName != null)
         {
             Material mat = Resources.Load<Material>("Costumes/mask_" + maskName);
-            if (mat != null) mask = BuildMask(mat);
+            if (mat != null) mask = BuildMask(mat, maskName);
         }
     }
 
@@ -84,14 +84,18 @@ public class CostumeWearer : MonoBehaviour
         }
     }
 
-    private GameObject BuildMask(Material mat)
+    private GameObject BuildMask(Material mat, string maskName)
     {
         // The model's size in this object's own space, so turning and
         // squashing mTiny moves the mask with it
         Bounds b = LocalBounds();
+        // The card takes the shape of the flat mask picture (the 3D texture
+        // is a square copy, so it compresses with mipmaps on every device)
         Texture tex = mat.mainTexture;
+        Sprite flat = Resources.Load<Sprite>("Costumes/mask_" + maskName);
         float w = b.size.x * 0.94f;
-        float h = tex != null ? w * tex.height / tex.width : w * 0.65f;
+        float h = flat != null ? w * flat.rect.height / flat.rect.width
+                : tex != null ? w * tex.height / tex.width : w * 0.65f;
         float depth = b.size.z;
 
         const int seg = 24;

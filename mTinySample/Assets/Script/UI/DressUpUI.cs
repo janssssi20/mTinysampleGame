@@ -32,7 +32,7 @@ public class DressUpUI : MonoBehaviour
 
     private Transform turntable;
     private CostumeWearer wearer;
-    private Camera previewCamera;
+    private CostumeStage previewStage;
     private RenderTexture texture;
     private MissionProgress progress;
     private IProgressStore store;
@@ -71,7 +71,7 @@ public class DressUpUI : MonoBehaviour
     public void Close()
     {
         if (panel != null) panel.SetActive(false);
-        if (previewCamera != null) previewCamera.enabled = false;
+        if (previewStage != null) previewStage.Live = false;
 
         // The title screen's mTiny changes into the new costume
         foreach (TitleMascot3D title in FindObjectsByType<TitleMascot3D>(FindObjectsSortMode.None)) title.Refresh();
@@ -130,14 +130,14 @@ public class DressUpUI : MonoBehaviour
     {
         if (turntable != null)
         {
-            previewCamera.enabled = true;
+            previewStage.Live = true;
             return;
         }
 
         CostumeStage stage = CostumeStage.Build(robotModel, stagePosition, 768, 1.65f, new Vector3(0f, 1f, -0.35f));
         turntable = stage.Turntable;
         wearer = stage.Wearer;
-        previewCamera = stage.Camera;
+        previewStage = stage;
         texture = stage.Texture;
         if (previewImage != null) previewImage.texture = texture;
     }

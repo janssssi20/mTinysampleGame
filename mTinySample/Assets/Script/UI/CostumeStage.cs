@@ -10,6 +10,22 @@ public class CostumeStage
     public Camera Camera { get; private set; }
     public RenderTexture Texture { get; private set; }
 
+    // On low-end devices the picture is smaller and drawn every other frame
+    private bool live;
+    private StageDriver driver;
+
+    public bool Live
+    {
+        get { return live; }
+        set
+        {
+            live = value;
+            if (Camera == null) return;
+            if (driver != null) { driver.live = value; Camera.enabled = false; }
+            else Camera.enabled = value;
+        }
+    }
+
     private const string LightName = "CostumeStageLight";
 
     public static CostumeStage Build(GameObject modelAsset, Vector3 position, int size, float distance, Vector3 viewFrom)
@@ -49,8 +65,15 @@ public class CostumeStage
         stage.Camera.transform.position = b.center + viewFrom.normalized * b.size.magnitude * distance;
         stage.Camera.transform.LookAt(b.center, Vector3.back);
 
-        stage.Texture = new RenderTexture(size, size, 24, RenderTextureFormat.ARGB32);
+        if (PerformanceMode.IsLowEnd) size = Mathf.Max(256, size * 5 / 8);
+        stage.Texture = new RenderTexture(size, size, 16, RenderTextureFormat.ARGB32);
         stage.Camera.targetTexture = stage.Texture;
+        if (PerformanceMode.IsLowEnd)
+        {
+            stage.driver = root.AddComponent<StageDriver>();
+            stage.driver.target = stage.Camera;
+        }
+        stage.Live = true;
 
         // Turn around mTiny's own up (towards the top of its head)
         stage.Turntable.position = b.center;
@@ -61,5 +84,19 @@ public class CostumeStage
     public void Release()
     {
         if (Texture != null) Texture.Release();
+    }
+}
+
+// Draws a stage camera by hand every other frame (low-end devices)
+public class StageDriver : MonoBehaviour
+{
+    public Camera target;
+    public bool live = true;
+    public int everyFrames = 2;
+
+    private void LateUpdate()
+    {
+        if (!live || target == null) return;
+        if (Time.frameCount % everyFrames == 0) target.Render();
     }
 }

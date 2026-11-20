@@ -61,9 +61,9 @@ public static class CostumeSetup
             imp.textureType = TextureImporterType.Sprite;
             imp.spriteImportMode = SpriteImportMode.Single;
             imp.alphaIsTransparency = true;
-            imp.mipmapEnabled = true;
+            imp.mipmapEnabled = false;                                   // the 3D copy has the mipmaps
             imp.wrapMode = TextureWrapMode.Clamp;
-            imp.textureCompression = TextureImporterCompression.Uncompressed;
+            imp.textureCompression = TextureImporterCompression.Compressed;
             imp.SaveAndReimport();
 
             string matPath = CostumeFolder + "/mask_" + n + ".mat";
@@ -77,6 +77,8 @@ public static class CostumeSetup
             EditorUtility.SetDirty(mat);
         }
         AssetDatabase.SaveAssets();
+        // The masks' compressed 3D copies (see PlatformOptimizer)
+        PlatformOptimizer.MaskTextures();
     }
 
     // The six world pictures (finished in PhotoCraft), 1920 x 1080

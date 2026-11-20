@@ -21,7 +21,7 @@ public class TitleMascot3D : MonoBehaviour
             stage = CostumeStage.Build(robotModel, stagePosition, 512, 1.7f, new Vector3(0f, 1f, -0.3f));
             if (picture != null) picture.texture = stage.Texture;
         }
-        stage.Camera.enabled = true;
+        stage.Live = true;
         MissionMapUI.UnlockAllChanged += Refresh;
         Refresh();
     }
@@ -29,7 +29,7 @@ public class TitleMascot3D : MonoBehaviour
     private void OnDisable()
     {
         MissionMapUI.UnlockAllChanged -= Refresh;
-        if (stage != null && stage.Camera != null) stage.Camera.enabled = false;
+        if (stage != null) stage.Live = false;
     }
 
     // Wear the saved costume (called again when the Costume room closes)
